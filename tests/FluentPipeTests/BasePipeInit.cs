@@ -1,4 +1,5 @@
 ﻿using FluentPipe.Blocks;
+using FluentPipe.Managers.Erreur;
 using FluentPipe.Runner;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

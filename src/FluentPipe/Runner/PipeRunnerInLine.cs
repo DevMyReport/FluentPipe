@@ -1,7 +1,7 @@
 ﻿using FluentPipe.Blocks.Contracts;
+using FluentPipe.Managers.Erreur;
 
 namespace FluentPipe.Runner;
 
-public sealed record SortieRunner<TOut, TError>(TOut? Sortie, IReadOnlyList<ProcessStep> Etapes, TError ErrorManager, TimeSpan DureeComplete);
 
-public class PipeRunnerInLine(IServiceProvider provider) : PipeRunnerBase<PipeErreurManager>(provider), IRunner;
+public class PipeRunnerInLine(IServiceProvider provider) : PipeRunnerBase<PipeErreurManager>(provider), IPipeRunner;

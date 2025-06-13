@@ -8,7 +8,7 @@ public static class Module
 {
     public static IServiceCollection RegisterRunner(this IServiceCollection services)
     {
-        services.TryAddTransient<IRunner,PipeRunnerComplet>();
+        services.TryAddTransient<IPipeRunner,PipeRunnerComplet>();
        
         return services;
     }

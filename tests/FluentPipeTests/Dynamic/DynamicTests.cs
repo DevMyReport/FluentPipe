@@ -9,7 +9,7 @@ namespace FluentPipe.Tests.Dynamic;
 [TestClass]
 public class DynamicTests : BasePipeInit
 {
-    private IRunner _CurrentService => GetContainer().GetRequiredService<IRunner>();
+    private IPipeRunner _CurrentService => GetContainer().GetRequiredService<IPipeRunner>();
 
     [TestMethod]
     public async Task OneIn_Inject_Add_Step_In_Runner()

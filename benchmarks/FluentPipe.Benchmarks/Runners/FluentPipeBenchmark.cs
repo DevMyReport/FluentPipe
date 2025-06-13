@@ -15,7 +15,7 @@ public sealed class FluentPipeInlineBenchmark
 {
     private PipeBuilderDetails<int, string> _plan = null!;
     private ServiceProvider _provider = null!;
-    private IRunner _serviceInline = null!;
+    private IPipeRunner _serviceInline = null!;
 
     [GlobalSetup]
     public void Setup()
@@ -27,7 +27,7 @@ public sealed class FluentPipeInlineBenchmark
 
         //services
         _provider = services.BuildServiceProvider();
-        _serviceInline = _provider.GetRequiredService<IRunner>();
+        _serviceInline = _provider.GetRequiredService<IPipeRunner>();
 
         //service
         var builder = PipeBuilderFactory.Creer<int>()

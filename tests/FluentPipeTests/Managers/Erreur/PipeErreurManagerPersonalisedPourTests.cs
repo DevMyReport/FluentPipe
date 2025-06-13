@@ -1,10 +1,10 @@
 ﻿using FluentPipe.Runner;
 
-namespace FluentPipe.Tests.ErreurManager;
+namespace FluentPipe.Tests.Managers.Erreur;
 
-public sealed class MyRunner(IServiceProvider provider) : PipeRunnerBase<PipeErreurManagerPersonalisedPourTests>(provider), IMyRunner;
+public sealed class MyPipeRunner(IServiceProvider provider) : PipeRunnerBase<PipeErreurManagerPersonalisedPourTests>(provider), IMyPipeRunner;
 
-public interface IMyRunner : IRunner<PipeErreurManagerPersonalisedPourTests>;
+public interface IMyPipeRunner : IPipeRunner<PipeErreurManagerPersonalisedPourTests>;
 
 public sealed class PipeErreurManagerPersonalisedPourTests : IPipeErreurManager<string>
 {

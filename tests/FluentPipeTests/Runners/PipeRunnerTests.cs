@@ -9,9 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 namespace FluentPipe.Tests.Runners;
 
 [TestClass]
-public class RunnerTests : BasePipeInit
+public class PipeRunnerTests : BasePipeInit
 {
-    private IRunner _CurrentService => GetContainer().GetRequiredService<IRunner>();
+    private IPipeRunner _CurrentService => GetContainer().GetRequiredService<IPipeRunner>();
 
     [TestMethod]
     public async Task Next_Simple_Chaining()

@@ -8,7 +8,7 @@ namespace FluentPipe.Tests.LifeTime;
 [TestClass]
 public class LifeTimeTests : BasePipeInit
 {
-    private IRunner CurrentService => GetContainer().GetRequiredService<IRunner>();
+    private IPipeRunner CurrentService => GetContainer().GetRequiredService<IPipeRunner>();
 
     [TestCleanup]
     public void OnCleanUp()

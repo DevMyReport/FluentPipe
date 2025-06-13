@@ -11,7 +11,7 @@ namespace FluentPipe.Tests.Dynamic;
 [TestClass]
 public class DynamicParallelTests : BasePipeInit
 {
-    private IRunner _CurrentService => GetContainer().GetRequiredService<IRunner>();
+    private IPipeRunner _CurrentService => GetContainer().GetRequiredService<IPipeRunner>();
 
     [TestMethod]
     public async Task NextDynamicParallel_With_One_Block_Same_Output_Type()

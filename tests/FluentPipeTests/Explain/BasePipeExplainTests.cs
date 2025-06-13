@@ -9,7 +9,7 @@ namespace FluentPipe.Tests.Explain;
 [TestClass]
 public sealed class PipeExplainTests : BasePipeInit
 {
-    private IRunner _CurrentService => GetContainer().GetService<IRunner>()!;
+    private IPipeRunner _CurrentService => GetContainer().GetService<IPipeRunner>()!;
 
     [TestMethod]
     public async Task Explain_Simple_Chaining()

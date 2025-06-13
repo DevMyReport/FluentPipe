@@ -1,21 +1,22 @@
 ﻿using FluentPipe.Blocks.Contracts;
 using FluentPipe.Blocks.OperationBlocks;
 using FluentPipe.Builder;
+using FluentPipe.Managers.Erreur;
 using FluentPipe.Runner;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FluentPipe.Tests.ErreurManager;
+namespace FluentPipe.Tests.Managers.Erreur;
 
 [TestClass]
 public class PipeErreurManagerTests : BasePipeInit
 {
-    private IRunner DefaultService => GetContainer().GetRequiredService<IRunner>();
+    private IPipeRunner DefaultService => GetContainer().GetRequiredService<IPipeRunner>();
 
-    private IMyRunner MyService => GetContainer().GetRequiredService<IMyRunner>();
+    private IMyPipeRunner MyPipeService => GetContainer().GetRequiredService<IMyPipeRunner>();
 
     protected override IServiceCollection SetServices(IServiceCollection services)
     {
-        services.AddTransient<IMyRunner, MyRunner>();
+        services.AddTransient<IMyPipeRunner, MyPipeRunner>();
         return base.SetServices(services);
     }
 
@@ -45,9 +46,9 @@ public class PipeErreurManagerTests : BasePipeInit
 
         var plan = builder.GetDetails();
 
-        var result = await MyService.RunAsync(plan, "1234");
+        var result = await MyPipeService.RunAsync(plan, "1234");
 
-        Assert.AreEqual(typeof(ErreurManager.PipeErreurManagerPersonalisedPourTests), result.ErrorManager.GetType());
+        Assert.AreEqual(typeof(PipeErreurManagerPersonalisedPourTests), result.ErrorManager.GetType());
 
         Assert.AreEqual(4321, result.Sortie);
         Assert.AreEqual(2, result.Etapes.Count);
@@ -62,11 +63,11 @@ public class PipeErreurManagerTests : BasePipeInit
 
         var plan = builder.GetDetails();
 
-        SortieRunner<int, ErreurManager.PipeErreurManagerPersonalisedPourTests> result = await MyService.RunAsync(plan, 2);
+        SortieRunner<int, PipeErreurManagerPersonalisedPourTests> result = await MyPipeService.RunAsync(plan, 2);
 
         var compute = ComputeResult.FromResult(result);
 
-        Assert.AreEqual(typeof(ErreurManager.PipeErreurManagerPersonalisedPourTests), result.ErrorManager.GetType());
+        Assert.AreEqual(typeof(PipeErreurManagerPersonalisedPourTests), result.ErrorManager.GetType());
 
         Assert.AreEqual(5, compute.TypedValue);
         Assert.AreEqual(4, result.Etapes.Count);

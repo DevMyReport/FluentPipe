@@ -8,9 +8,9 @@ using Microsoft.Extensions.DependencyInjection;
 namespace FluentPipe.Tests.Runners;
 
 [TestClass]
-public class RunnerParallelTests : BasePipeInit
+public class PipeRunnerParallelTests : BasePipeInit
 {
-    private IRunner CurrentService => GetContainer().GetRequiredService<IRunner>();
+    private IPipeRunner CurrentService => GetContainer().GetRequiredService<IPipeRunner>();
 
     [TestMethod]
     public async Task NextInParallel_Simple_Chain()

@@ -9,7 +9,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FluentPipe.Runner;
 
-public abstract class PipeRunnerBase<TErrorManager>(IServiceProvider provider) : IRunner<TErrorManager>
+/// <summary>
+///     PipeRunnnerBase qui prend en charge les erreurs
+///     Il existe une base dérivée qui prend en plus en charge les etat et la progression
+/// </summary>
+/// <param name="provider"></param>
+/// <typeparam name="TErrorManager"></typeparam>
+public abstract class PipeRunnerBase<TErrorManager>(IServiceProvider provider) : IPipeRunner<TErrorManager>
     where TErrorManager : IPipeErreurManager, new()
 {
     public async Task<SortieRunner<TOut, TErrorManager>> RunAsync<TIn, TOut>(
@@ -21,7 +27,7 @@ public abstract class PipeRunnerBase<TErrorManager>(IServiceProvider provider) :
     }
 
     /// <summary>
-    ///     Lance l'execution des etapes
+    ///     Lance l'exécution des étapes
     /// </summary>
     /// <typeparam name="TIn"></typeparam>
     /// <typeparam name="TOut"></typeparam>
@@ -59,7 +65,7 @@ public abstract class PipeRunnerBase<TErrorManager>(IServiceProvider provider) :
     }
 
     /// <summary>
-    ///     Lance les etapes en fonction de leurs configuration
+    ///     Lance les étapes en fonction de leurs configurations
     /// </summary>
     /// <param name="steps"></param>
     /// <param name="input"></param>
@@ -375,9 +381,19 @@ public abstract class PipeRunnerBase<TErrorManager>(IServiceProvider provider) :
     #endregion
 }
 
-public abstract class PipeRunnerBase<TErrorManager, TStateManager, TState, TTrigger, TProgressionManager>(IServiceProvider provider)
+/// <summary>
+///     PipeRunnnerBase complet qui prend en charge les erreur, les etats et la progression de chaque etape
+/// </summary>
+/// <param name="provider"></param>
+/// <typeparam name="TErrorManager"></typeparam>
+/// <typeparam name="TStateManager"></typeparam>
+/// <typeparam name="TState"></typeparam>
+/// <typeparam name="TTrigger"></typeparam>
+/// <typeparam name="TProgressionManager"></typeparam>
+public abstract class PipeRunnerBase<TErrorManager, TStateManager, TState, TTrigger, TProgressionManager>(
+    IServiceProvider provider)
     : PipeRunnerBase<TErrorManager>(provider),
-        IRunner<TErrorManager, TStateManager, TState, TTrigger, TProgressionManager>
+        IPipeRunner<TErrorManager, TStateManager, TState, TTrigger, TProgressionManager>
     where TErrorManager : IPipeErreurManager, new()
     where TStateManager : IPipeEtatManager<TState, TTrigger>
     where TProgressionManager : IPipeProgressionManager
@@ -389,7 +405,7 @@ public abstract class PipeRunnerBase<TErrorManager, TStateManager, TState, TTrig
         TProgressionManager progressionManager = default,
         CancellationToken cancellationToken = default)
     {
-        progressionManager.ReportProgress("", 0);
+        progressionManager.NotifierProgression("", 0);
 
         try
         {
@@ -397,7 +413,7 @@ public abstract class PipeRunnerBase<TErrorManager, TStateManager, TState, TTrig
         }
         finally
         {
-            progressionManager.ReportProgress("", 100);
+            progressionManager.NotifierProgression("", 100);
         }
     }
 
@@ -407,14 +423,14 @@ public abstract class PipeRunnerBase<TErrorManager, TStateManager, TState, TTrig
         TProgressionManager progressManager = default,
         CancellationToken cancellationToken = default)
     {
-        progressManager.ReportProgress("", 0);
+        progressManager.NotifierProgression("", 0);
         try
         {
             return await base.ExplainAsync(detail, cancellationToken);
         }
         finally
         {
-            progressManager.ReportProgress("", 100);
+            progressManager.NotifierProgression("", 100);
         }
     }
 }

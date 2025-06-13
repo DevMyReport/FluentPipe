@@ -15,8 +15,8 @@ public sealed class FluentPipeParallelBenchmark
 {
     private PipeBuilderDetails<int, int> _plan = null!;
     private ServiceProvider _provider = null!;
-    private IRunner _serviceDefault = null!;
-    private IRunner _serviceWithTask = null!;
+    private IPipeRunner _serviceDefault = null!;
+    private IPipeRunner _serviceWithTask = null!;
 
     [Params(100, 10_000)]
     public int Input;
@@ -28,12 +28,11 @@ public sealed class FluentPipeParallelBenchmark
         IServiceCollection services = new ServiceCollection();
         services.RegisterRunner();
         services.RegisterBlocks();
-        services.AddSingleton<RunnerParallelTask>();
 
         //services
         _provider = services.BuildServiceProvider();
-        _serviceDefault = _provider.GetRequiredService<IRunner>();
-        _serviceWithTask = _provider.GetRequiredService<IRunner>();
+        _serviceDefault = _provider.GetRequiredService<IPipeRunner>();
+        _serviceWithTask = _provider.GetRequiredService<IPipeRunner>();
 
         var builder = PipeBuilderFactory.Creer<int>()
                 .NextEnumerable<LongReadEnumBlock, int>()

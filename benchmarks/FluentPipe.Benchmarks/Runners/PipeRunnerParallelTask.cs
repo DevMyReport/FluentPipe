@@ -2,9 +2,9 @@
 
 namespace FluentPipe.Benchmarks.Runners;
 
-public sealed class RunnerParallelTask : PipeRunnerInLine
+public sealed class PipeRunnerParallelTask : PipeRunnerInLine
 {
-    public RunnerParallelTask(IServiceProvider provider) : base(provider)
+    public PipeRunnerParallelTask(IServiceProvider provider) : base(provider)
     {
     }
 

@@ -9,7 +9,7 @@ namespace FluentPipe.Tests.Switch;
 [TestClass]
 public class SwitchTests : BasePipeInit
 {
-    private IRunner _CurrentService => GetContainer().GetRequiredService<IRunner>();
+    private IPipeRunner _CurrentService => GetContainer().GetRequiredService<IPipeRunner>();
 
     [TestMethod]
     public async Task Switch_Condition_Multiple_First_Position()
