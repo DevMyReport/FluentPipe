@@ -19,22 +19,22 @@ public sealed record SortieRunner<TOut, TError>(
     TimeSpan DureeComplete);
 
 public interface
-    IPipeRunner<TErrorManager, in TStateManager, TState, TTrigger, in TProgressionManager> : IPipeRunner<TErrorManager>
+    IPipeRunner<TErrorManager, out TEtatManager, TState, TTrigger, out TProgressionManager> : IPipeRunner<TErrorManager>
     where TErrorManager : IPipeErreurManager
-    where TStateManager : IPipeEtatManager<TState, TTrigger>
+    where TEtatManager : IPipeEtatManager<TState, TTrigger>
     where TProgressionManager : IPipeProgressionManager
 {
+    public TEtatManager EtatManager { get; } 
+    
+    public TProgressionManager ProgressionManager { get; } 
+    
     public Task<SortieRunner<TOut, TErrorManager>> RunAsync<TIn, TOut>(
         PipeBuilderDetails<TIn, TOut> detail,
         [DisallowNull] TIn input,
-        TStateManager etatManager = default,
-        TProgressionManager progressionManager = default,
         CancellationToken cancellationToken = default);
 
     public Task<SortieRunner<TOut, TErrorManager>> ExplainAsync<TIn, TOut>(
         PipeBuilderDetails<TIn, TOut> detail,
-        TStateManager etatManager = default,
-        TProgressionManager progressManager = default,
         CancellationToken cancellationToken = default);
 }
 

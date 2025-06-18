@@ -5,32 +5,35 @@ using Stateless;
 
 namespace FluentPipe.Runner;
 
-public interface IPipeEtatManager<TEtat, TTrigger>
+public interface IPipeEtatManager<TEtat, TDeclancheur>
 {
     /// <summary>
     /// Obtenir l'état d'une étape
     /// </summary>
     TEtat GetEtapeEtat(string etapeId);
     
-    bool Declancher(string etapeId, TTrigger trigger);
+    bool Declancher(string etapeId, TDeclancheur declancheur);
 
     void DeclancherEtapeDemarred(string etapeId);
-    void DeclancherEtapeTermined(string stepId);
-    void DeclancherEtapeAnnuled(string stepId);
-    void DeclancherEtapeEnEchec(string stepId);
+    
+    void DeclancherEtapeTermined(string etapeId);
+    
+    void DeclancherEtapeAnnuled(string etapeId);
+    
+    void DeclancherEtapeEnEchec(string etapeId);
 }
 
-public abstract class PipeEtatManagerBase<TEtat, TTrigger> : IPipeEtatManager<TEtat, TTrigger>
+public abstract class PipeEtatManagerBase<TEtat, TDeclancheur> : IPipeEtatManager<TEtat, TDeclancheur>
 {
-    protected abstract TTrigger? DeclancheurEtapeDemarredParDefaut { get; }
-    protected abstract TTrigger? DeclancheurEtapeSuccesParDefaut { get; }
-    protected abstract TTrigger? DeclancheurEtapeEnEchecParDefaut { get; }
-    protected abstract TTrigger? DeclancheurEtapeAnnuledParDefaut { get; }
+    protected abstract TDeclancheur? DeclancheurEtapeDemarredParDefaut { get; }
+    protected abstract TDeclancheur? DeclancheurEtapeSuccesParDefaut { get; }
+    protected abstract TDeclancheur? DeclancheurEtapeEnEchecParDefaut { get; }
+    protected abstract TDeclancheur? DeclancheurEtapeAnnuledParDefaut { get; }
 
     /// <summary>
     /// L'ensemble des Machines à état du Pipe(runner)
     /// </summary>
-    private readonly ConcurrentDictionary<string, StateMachine<TEtat, TTrigger>> _machines = new();
+    private readonly ConcurrentDictionary<string, StateMachine<TEtat, TDeclancheur>> _machines = new();
     
     public void AjouterMachineAEtat(string etapeId)
     {
@@ -39,7 +42,7 @@ public abstract class PipeEtatManagerBase<TEtat, TTrigger> : IPipeEtatManager<TE
             throw new InvalidOperationException($"Machine '{etapeId}' is existe déjà");
     }
     
-    public StateMachine<TEtat, TTrigger> GetMachineByEtapeId(string etapeId)
+    public StateMachine<TEtat, TDeclancheur> GetMachineByEtapeId(string etapeId)
     {
         return _machines[etapeId];
     }
@@ -59,14 +62,14 @@ public abstract class PipeEtatManagerBase<TEtat, TTrigger> : IPipeEtatManager<TE
         throw new KeyNotFoundException($"Aucune machine à état trouvée pour l'étape {etapeId}");
     }
     
-    public bool Declancher(string etapeId, TTrigger trigger)
+    public bool Declancher(string etapeId, TDeclancheur declancheur)
     {
         var machine = GetMachineByEtapeId(etapeId);
         
-        if (!machine.CanFire(trigger)) 
+        if (!machine.CanFire(declancheur)) 
             return false;
         
-        machine.Fire(trigger);
+        machine.Fire(declancheur);
         return true;
     }
 
@@ -75,20 +78,20 @@ public abstract class PipeEtatManagerBase<TEtat, TTrigger> : IPipeEtatManager<TE
         Declancher(etapeId, DeclancheurEtapeDemarredParDefaut);
     }
 
-    public void DeclancherEtapeTermined(string stepId)
+    public void DeclancherEtapeTermined(string etapeId)
     {
-        Declancher(stepId, DeclancheurEtapeSuccesParDefaut);
+        Declancher(etapeId, DeclancheurEtapeSuccesParDefaut);
     }
 
-    public void DeclancherEtapeAnnuled(string stepId)
+    public void DeclancherEtapeAnnuled(string etapeId)
     {
-        Declancher(stepId, DeclancheurEtapeAnnuledParDefaut);
+        Declancher(etapeId, DeclancheurEtapeAnnuledParDefaut);
     }
 
-    public void DeclancherEtapeEnEchec(string stepId)
+    public void DeclancherEtapeEnEchec(string etapeId)
     {
-        Declancher(stepId, DeclancheurEtapeEnEchecParDefaut);
+        Declancher(etapeId, DeclancheurEtapeEnEchecParDefaut);
     }
 
-    protected abstract StateMachine<TEtat, TTrigger> CreerMachineAEtat(string etapeId);
+    protected abstract StateMachine<TEtat, TDeclancheur> CreerMachineAEtat(string etapeId);
 }

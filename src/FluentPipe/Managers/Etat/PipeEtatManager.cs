@@ -38,36 +38,6 @@ public enum EnumEtapeDeclancheur
 /// </summary>
 public class PipeEtatManager : PipeEtatManagerBase<EnumEtapeEtat, EnumEtapeDeclancheur>
 {
-    public void OnStepCompleted(string stepId, EnumEtapeEtat etat)
-    {
-        var machine = GetMachineByEtapeId(stepId);
-
-        // Si la machine est encore en Pending, on force d'abord un Start
-        if (machine.State == EnumEtapeEtat.EnAttente && machine.CanFire(EnumEtapeDeclancheur.Demarrage))
-        {
-            machine.Fire(EnumEtapeDeclancheur.Demarrage);
-        }
-
-        switch (etat)
-        {
-            case EnumEtapeEtat.Succes:
-                if (machine.CanFire(EnumEtapeDeclancheur.Succes))
-                    machine.Fire(EnumEtapeDeclancheur.Succes);
-                break;
-            case EnumEtapeEtat.Echec:
-                if (machine.CanFire(EnumEtapeDeclancheur.Erreur))
-                    machine.Fire(EnumEtapeDeclancheur.Erreur);
-                break;
-            case EnumEtapeEtat.Annuled:
-                if (machine.CanFire(EnumEtapeDeclancheur.Annulation))
-                    machine.Fire(EnumEtapeDeclancheur.Annulation);
-                break;
-            default:
-                // Running ou Pending, on ne fait rien
-                break;
-        }
-    }
-    
     public override EnumEtapeEtat AgregerEtapesEtats(IEnumerable<string> etapesIds)
     {
         var etatsEnfants = new List<EnumEtapeEtat>();
@@ -98,8 +68,11 @@ public class PipeEtatManager : PipeEtatManagerBase<EnumEtapeEtat, EnumEtapeDecla
     }
 
     protected override EnumEtapeDeclancheur DeclancheurEtapeDemarredParDefaut => EnumEtapeDeclancheur.Demarrage;
+    
     protected override EnumEtapeDeclancheur DeclancheurEtapeSuccesParDefaut  => EnumEtapeDeclancheur.Succes;
+    
     protected override EnumEtapeDeclancheur DeclancheurEtapeEnEchecParDefaut => EnumEtapeDeclancheur.Erreur;
+    
     protected override EnumEtapeDeclancheur DeclancheurEtapeAnnuledParDefaut => EnumEtapeDeclancheur.Annulation;
 
     protected override StateMachine<EnumEtapeEtat, EnumEtapeDeclancheur> CreerMachineAEtat(string etapeId)
@@ -129,5 +102,4 @@ public class PipeEtatManager : PipeEtatManagerBase<EnumEtapeEtat, EnumEtapeDecla
 
         return machine;
     }
-
 }

@@ -10,21 +10,22 @@ using Microsoft.Extensions.DependencyInjection;
 namespace FluentPipe.Runner;
 
 /// <summary>
-///     PipeRunnnerBase qui prend en charge les erreurs
-///     Il existe une base dérivée qui prend en plus en charge les etat et la progression
+///     PipeRunnnerBase qui prend en charge les erreurs.
+///     Il existe une base dérivée qui prend en plus en charge les états et la progression
 /// </summary>
 /// <param name="provider"></param>
-/// <typeparam name="TErrorManager"></typeparam>
-public abstract class PipeRunnerBase<TErrorManager>(IServiceProvider provider) : IPipeRunner<TErrorManager>
-    where TErrorManager : IPipeErreurManager, new()
+/// <typeparam name="TErreurManager"></typeparam>
+public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) : IPipeRunner<TErreurManager>
+    where TErreurManager : IPipeErreurManager, new()
 {
-    public async Task<SortieRunner<TOut, TErrorManager>> RunAsync<TIn, TOut>(
+    public async Task<SortieRunner<TOut, TErreurManager>> RunAsync<TIn, TOut>(
         PipeBuilderDetails<TIn, TOut> detail,
         [DisallowNull] TIn input,
         CancellationToken cancellationToken = default)
     {
-        return await RunAsync(detail, input, new TErrorManager(), cancellationToken);
+        return await RunAsync(detail, input, new TErreurManager(), cancellationToken);
     }
+
 
     /// <summary>
     ///     Lance l'exécution des étapes
@@ -37,16 +38,16 @@ public abstract class PipeRunnerBase<TErrorManager>(IServiceProvider provider) :
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public async Task<SortieRunner<TOut, TErrorManager>> RunAsync<TIn, TOut>(
+    public async Task<SortieRunner<TOut, TErreurManager>> RunAsync<TIn, TOut>(
         PipeBuilderDetails<TIn, TOut> detail,
         [DisallowNull] TIn input,
-        TErrorManager? errorManager = default,
+        TErreurManager? errorManager = default,
         CancellationToken cancellationToken = default)
     {
         if (input == null)
             throw new ArgumentNullException(nameof(input));
 
-        errorManager ??= new TErrorManager();
+        errorManager ??= new TErreurManager();
         var stopwatch = Stopwatch.StartNew();
         var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         using var state = new RunnerState(false, provider, errorManager, cts);
@@ -61,7 +62,7 @@ public abstract class PipeRunnerBase<TErrorManager>(IServiceProvider provider) :
 
         stopwatch.Stop();
 
-        return new SortieRunner<TOut, TErrorManager>((TOut) data!, listEtapes, errorManager, stopwatch.Elapsed);
+        return new SortieRunner<TOut, TErreurManager>((TOut) data!, listEtapes, errorManager, stopwatch.Elapsed);
     }
 
     /// <summary>
@@ -311,17 +312,17 @@ public abstract class PipeRunnerBase<TErrorManager>(IServiceProvider provider) :
 
     #region ExplainAsync
 
-    public async Task<SortieRunner<TOut, TErrorManager>> ExplainAsync<TIn, TOut>(
+    public async Task<SortieRunner<TOut, TErreurManager>> ExplainAsync<TIn, TOut>(
         PipeBuilderDetails<TIn, TOut> detail,
         CancellationToken cancellationToken = default)
     {
-        return await ExplainAsync(detail, new TErrorManager(), cancellationToken);
+        return await ExplainAsync(detail, new TErreurManager(), cancellationToken);
     }
 
-    public async Task<SortieRunner<TOut, TErrorManager>> ExplainAsync<TIn, TOut>(PipeBuilderDetails<TIn, TOut> detail,
-        TErrorManager? error = default, CancellationToken cancellationToken = default)
+    public async Task<SortieRunner<TOut, TErreurManager>> ExplainAsync<TIn, TOut>(PipeBuilderDetails<TIn, TOut> detail,
+        TErreurManager? error = default, CancellationToken cancellationToken = default)
     {
-        var errorManager = error ?? new TErrorManager();
+        var errorManager = error ?? new TErreurManager();
         var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var stopwatch = Stopwatch.StartNew();
 
@@ -331,7 +332,7 @@ public abstract class PipeRunnerBase<TErrorManager>(IServiceProvider provider) :
 
         stopwatch.Stop();
 
-        return new SortieRunner<TOut, TErrorManager>(default, explains, errorManager, stopwatch.Elapsed);
+        return new SortieRunner<TOut, TErreurManager>(default, explains, errorManager, stopwatch.Elapsed);
     }
 
     private static async Task<List<ProcessStep>> ExplainInMixedAsync(
@@ -385,52 +386,51 @@ public abstract class PipeRunnerBase<TErrorManager>(IServiceProvider provider) :
 ///     PipeRunnnerBase complet qui prend en charge les erreur, les etats et la progression de chaque etape
 /// </summary>
 /// <param name="provider"></param>
-/// <typeparam name="TErrorManager"></typeparam>
-/// <typeparam name="TStateManager"></typeparam>
-/// <typeparam name="TState"></typeparam>
-/// <typeparam name="TTrigger"></typeparam>
+/// <typeparam name="TErreurManager"></typeparam>
+/// <typeparam name="TEtatManager"></typeparam>
+/// <typeparam name="TEtat"></typeparam>
+/// <typeparam name="TDeclancheur"></typeparam>
 /// <typeparam name="TProgressionManager"></typeparam>
-public abstract class PipeRunnerBase<TErrorManager, TStateManager, TState, TTrigger, TProgressionManager>(
+public abstract class PipeRunnerBase<TErreurManager, TEtatManager, TEtat, TDeclancheur, TProgressionManager>(
     IServiceProvider provider)
-    : PipeRunnerBase<TErrorManager>(provider),
-        IPipeRunner<TErrorManager, TStateManager, TState, TTrigger, TProgressionManager>
-    where TErrorManager : IPipeErreurManager, new()
-    where TStateManager : IPipeEtatManager<TState, TTrigger>
-    where TProgressionManager : IPipeProgressionManager
+    : PipeRunnerBase<TErreurManager>(provider),
+        IPipeRunner<TErreurManager, TEtatManager, TEtat, TDeclancheur, TProgressionManager>
+    where TErreurManager : IPipeErreurManager, new()
+    where TEtatManager : IPipeEtatManager<TEtat, TDeclancheur>, new()
+    where TProgressionManager : IPipeProgressionManager, new()
 {
-    public async Task<SortieRunner<TOut, TErrorManager>> RunAsync<TIn, TOut>(
+
+    public TEtatManager EtatManager { get; } = new TEtatManager();
+    public TProgressionManager ProgressionManager { get; } = new TProgressionManager();
+    
+    public async Task<SortieRunner<TOut, TErreurManager>> RunAsync<TIn, TOut>(
         PipeBuilderDetails<TIn, TOut> detail,
         [DisallowNull] TIn input,
-        TStateManager etatManager = default,
-        TProgressionManager progressionManager = default,
         CancellationToken cancellationToken = default)
     {
-        progressionManager.NotifierProgression("", 0);
-
+        ProgressionManager.NotifierProgression("", 0);
         try
         {
             return await base.RunAsync(detail, input, cancellationToken);
         }
         finally
         {
-            progressionManager.NotifierProgression("", 100);
+            ProgressionManager.NotifierProgression("", 100);
         }
     }
 
-    public async Task<SortieRunner<TOut, TErrorManager>> ExplainAsync<TIn, TOut>(
+    public async Task<SortieRunner<TOut, TErreurManager>> ExplainAsync<TIn, TOut>(
         PipeBuilderDetails<TIn, TOut> detail,
-        TStateManager etatManager = default,
-        TProgressionManager progressManager = default,
         CancellationToken cancellationToken = default)
     {
-        progressManager.NotifierProgression("", 0);
+        ProgressionManager.NotifierProgression("", 0);
         try
         {
             return await base.ExplainAsync(detail, cancellationToken);
         }
         finally
         {
-            progressManager.NotifierProgression("", 100);
+            ProgressionManager.NotifierProgression("", 100);
         }
     }
 }
