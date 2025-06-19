@@ -18,14 +18,7 @@ namespace FluentPipe.Runner;
 public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) : IPipeRunner<TErreurManager>
     where TErreurManager : IPipeErreurManager, new()
 {
-    public async Task<SortieRunner<TOut, TErreurManager>> RunAsync<TIn, TOut>(
-        PipeBuilderDetails<TIn, TOut> detail,
-        [DisallowNull] TIn input,
-        CancellationToken cancellationToken = default)
-    {
-        return await RunAsync(detail, input, new TErreurManager(), cancellationToken);
-    }
-
+    private TErreurManager _ErreurManager { get; } = new TErreurManager();
 
     /// <summary>
     ///     Lance l'exécution des étapes
@@ -41,28 +34,26 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
     public async Task<SortieRunner<TOut, TErreurManager>> RunAsync<TIn, TOut>(
         PipeBuilderDetails<TIn, TOut> detail,
         [DisallowNull] TIn input,
-        TErreurManager? errorManager = default,
         CancellationToken cancellationToken = default)
     {
         if (input == null)
             throw new ArgumentNullException(nameof(input));
 
-        errorManager ??= new TErreurManager();
         var stopwatch = Stopwatch.StartNew();
         var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        using var state = new RunnerState(false, provider, errorManager, cts);
+        using var state = new RunnerState(false, provider, _ErreurManager, cts);
 
         var (listEtapes, data) = await RunInMixed(detail.Etapes, input, state);
 
         if (cancellationToken.IsCancellationRequested)
-            errorManager.Cancel();
+            InternalAnnuler();
 
-        if (errorManager.HasError || data == null)
+        if (_ErreurManager.HasError || data == null)
             data = default(TOut);
 
         stopwatch.Stop();
 
-        return new SortieRunner<TOut, TErreurManager>((TOut) data!, listEtapes, errorManager, stopwatch.Elapsed);
+        return new SortieRunner<TOut, TErreurManager>((TOut) data!, listEtapes, _ErreurManager, stopwatch.Elapsed);
     }
 
     /// <summary>
@@ -72,7 +63,7 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
     /// <param name="input"></param>
     /// <param name="state"></param>
     /// <returns></returns>
-    private static async Task<(List<ProcessStep>, object?)> RunInMixed(IReadOnlyList<IEtape> steps, object input,
+    private async Task<(List<ProcessStep>, object?)> RunInMixed(IReadOnlyList<IEtape> steps, object input,
         RunnerState state)
     {
         var data = input;
@@ -157,7 +148,7 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
     /// <param name="input"></param>
     /// <param name="state"></param>
     /// <returns></returns>
-    private static async Task<(IEnumerable<ProcessStep>, object?)> RunInParallel(IEnumerable<Etape> steps,
+    private async Task<(IEnumerable<ProcessStep>, object?)> RunInParallel(IEnumerable<Etape> steps,
         object input, RunnerState state)
     {
         var values = new ConcurrentBag<(ProcessStep, ComputeResult)>();
@@ -195,7 +186,7 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
     /// <param name="step"></param>
     /// <param name="state"></param>
     /// <returns></returns>
-    private static async Task<(IEnumerable<ProcessStep>, object?)> RunInParallel(Etape step,
+    private async Task<(IEnumerable<ProcessStep>, object?)> RunInParallel(Etape step,
         IEnumerable<object> inputs, int maxDegreeOfParallelism, RunnerState state)
     {
         var values = new ConcurrentBag<(ProcessStep, ComputeResult)>();
@@ -238,7 +229,7 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
     /// <param name="step"></param>
     /// <param name="state"></param>
     /// <returns></returns>
-    private static async Task<(List<ProcessStep>, object?)> RunInDynamicParallel(DynamicEtape step,
+    private async Task<(List<ProcessStep>, object?)> RunInDynamicParallel(DynamicEtape step,
         IEnumerable<object> inputs, int maxDegreeOfParallelism, RunnerState state)
     {
         var values = new ConcurrentBag<(List<ProcessStep> etapes, object? data)>();
@@ -271,7 +262,7 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
         return (allEtapes, svc!.ToTypedEnumerableConverter(allData));
     }
 
-    private static IEnumerable<ProcessStep> GetAllProcessSteps(ProcessStep process, ComputeResult compute)
+    private IEnumerable<ProcessStep> GetAllProcessSteps(ProcessStep process, ComputeResult compute)
     {
         yield return process;
         foreach (var etape in compute.SousEtapes)
@@ -285,9 +276,10 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
     /// <param name="input"></param>
     /// <param name="state"></param>
     /// <returns></returns>
-    private static async Task<(ProcessStep, ComputeResult, IPipeProcessBlock)> ComputeStepAsync(Etape step,
+    private async Task<(ProcessStep, ComputeResult, IPipeProcessBlock)> ComputeStepAsync(Etape step,
         object input, RunnerState state)
     {
+        InternalPreEtape(step);
         var sw = Stopwatch.StartNew();
 
         var svc = state.Scope.ServiceProvider.GetRequiredKeyedService<IPipeProcessBlock>(step.TypeDuBlock);
@@ -295,9 +287,10 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
 
         sw.Stop();
 
+        InternalPostEtape(step);
         return (new ProcessStep(step, sw.Elapsed), result, svc);
     }
-
+    
     #region DynamicStep
 
     private static (IReadOnlyList<IEtape>, IBuilderProcessBlock) GetDynamicEtapes(Etape step, object input,
@@ -312,27 +305,18 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
 
     #region ExplainAsync
 
-    public async Task<SortieRunner<TOut, TErreurManager>> ExplainAsync<TIn, TOut>(
-        PipeBuilderDetails<TIn, TOut> detail,
-        CancellationToken cancellationToken = default)
+    public async Task<SortieRunner<TOut, TErreurManager>> ExplainAsync<TIn, TOut>(PipeBuilderDetails<TIn, TOut> detail, CancellationToken cancellationToken = default)
     {
-        return await ExplainAsync(detail, new TErreurManager(), cancellationToken);
-    }
-
-    public async Task<SortieRunner<TOut, TErreurManager>> ExplainAsync<TIn, TOut>(PipeBuilderDetails<TIn, TOut> detail,
-        TErreurManager? error = default, CancellationToken cancellationToken = default)
-    {
-        var errorManager = error ?? new TErreurManager();
         var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var stopwatch = Stopwatch.StartNew();
 
-        using var state = new RunnerState(true, provider, errorManager, cts);
+        using var state = new RunnerState(true, provider, _ErreurManager, cts);
 
         var explains = await ExplainInMixedAsync(detail.Etapes, state);
 
         stopwatch.Stop();
 
-        return new SortieRunner<TOut, TErreurManager>(default, explains, errorManager, stopwatch.Elapsed);
+        return new SortieRunner<TOut, TErreurManager>(default, explains, _ErreurManager, stopwatch.Elapsed);
     }
 
     private static async Task<List<ProcessStep>> ExplainInMixedAsync(
@@ -380,6 +364,19 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
     }
 
     #endregion
+    
+    
+    protected virtual void InternalAnnuler(Etape etape = null)
+    {
+        _ErreurManager.Cancel();
+    }
+
+    protected virtual void InternalPreEtape(Etape etape)
+    { }
+
+    protected virtual void InternalPostEtape(Etape etape)
+    { }
+
 }
 
 /// <summary>
@@ -399,10 +396,9 @@ public abstract class PipeRunnerBase<TErreurManager, TEtatManager, TEtat, TDecla
     where TEtatManager : IPipeEtatManager<TEtat, TDeclancheur>, new()
     where TProgressionManager : IPipeProgressionManager, new()
 {
-
     public TEtatManager EtatManager { get; } = new TEtatManager();
     public TProgressionManager ProgressionManager { get; } = new TProgressionManager();
-    
+
     public async Task<SortieRunner<TOut, TErreurManager>> RunAsync<TIn, TOut>(
         PipeBuilderDetails<TIn, TOut> detail,
         [DisallowNull] TIn input,
@@ -432,5 +428,23 @@ public abstract class PipeRunnerBase<TErreurManager, TEtatManager, TEtat, TDecla
         {
             ProgressionManager.NotifierProgression("", 100);
         }
+    }
+
+    protected override void InternalAnnuler(Etape etape)
+    {
+        EtatManager.DeclancherEtapeAnnuled(etape.TypeDuBlock.Name);
+        base.InternalAnnuler(etape);
+    }
+
+    protected override void InternalPreEtape(Etape etape)
+    {
+        EtatManager.DeclancherEtapeDemarred(etape.TypeDuBlock.Name);
+        base.InternalPreEtape(etape);
+    }
+
+    protected override void InternalPostEtape(Etape etape)
+    {
+        EtatManager.DeclancherEtapeTermined(etape.TypeDuBlock.Name);
+        base.InternalPostEtape(etape);
     }
 }

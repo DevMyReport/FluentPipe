@@ -10,7 +10,7 @@ namespace FluentPipe.Tests.Runners;
 [TestClass]
 public class PipeRunnerCompletTests : BasePipeInit
 {
-    private IPipeRunnerStateProgress CurrentService => (IPipeRunnerStateProgress)GetContainer().GetRequiredService<IPipeRunner>();
+    private IPipeRunnerAvecEtatEtProgression PipeRunnerComplet => (IPipeRunnerAvecEtatEtProgression)GetContainer().GetRequiredService<IPipeRunner>();
 
     [TestMethod]
     public void Default_Service_Is_PipeRunnerComplet()
@@ -28,9 +28,9 @@ public class PipeRunnerCompletTests : BasePipeInit
             .Next<ToIntBlock, int>();
 
         var plan = builder.GetDetails();
-        var progress = new TestProgressManager();
+        var progress =PipeRunnerComplet.ProgressionManager;
 
-        var result = await CurrentService.RunAsync(plan, "1234", pipeRunnerComplet., pipeRunnerComplet);
+        var result = await PipeRunnerComplet.RunAsync(plan, "1234");
 
         Assert.AreEqual(4321, result.Sortie);
         CollectionAssert.AreEqual(new[] { 0d, 100d }, progress.Calls.Select(c => c.Percentage).ToList());
@@ -45,9 +45,8 @@ public class PipeRunnerCompletTests : BasePipeInit
 
         var plan = builder.GetDetails();
         var progress = new TestProgressManager();
-        var progress2 = new PipeProgressionManager();
 
-        var result = await CurrentService.ExplainAsync(plan, new PipeEtatManager(), progress2);
+        var result = await PipeRunnerComplet.ExplainAsync(plan);
         Assert.AreEqual(2, result.Etapes.Count);
         CollectionAssert.AreEqual(new[] { 0d, 100d }, progress.Calls.Select(c => c.Percentage).ToList());
     }

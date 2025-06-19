@@ -3,4 +3,4 @@ using FluentPipe.Managers.Etat;
 
 namespace FluentPipe.Runner;
 
-public class PipeRunnerComplet(IServiceProvider provider) : PipeRunnerBase<PipeErreurManager, PipeEtatManager, EnumEtapeEtat, EnumEtapeDeclancheur, PipeProgressionManager>(provider), IPipeRunner;
+public class PipeRunnerComplet(IServiceProvider provider) : PipeRunnerBase<PipeErreurManager, PipeEtatManager, EnumEtapeEtat, EnumEtapeDeclancheur, PipeProgressionManager>(provider), IPipeRunnerAvecEtatEtProgression, IPipeRunner;
