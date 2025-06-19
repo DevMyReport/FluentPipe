@@ -1,29 +1,48 @@
 using System.Collections.Concurrent;
+using FluentPipe.Blocks;
+using FluentPipe.Builder.Entity;
 
 namespace FluentPipe.Runner;
 
 public class PipeProgressionManager : IPipeProgressionManager
 {
+    
     // 3) Pour la progression, on conserve un pourcentage par étape
-    private readonly ConcurrentDictionary<string, double> _ProgressionParEtape
-        = new ConcurrentDictionary<string, double>();
+    private readonly ConcurrentDictionary<string, ProgressionEvent> _ProgressionParBlock
+        = new ConcurrentDictionary<string, ProgressionEvent>();
 
-    public void NotifierProgression(string etapeId, double percentage)
+    public event EventHandler<ProgressionEvent>? BlockProgressionChanged;
+
+    public void OnProgressionBlock(object? sender, ProgressionEvent e)
     {
-        // On se force à plafonner entre 0 et 100
-        var pct = Math.Max(0, Math.Min(100, percentage));
-        _ProgressionParEtape.AddOrUpdate(etapeId, pct, (_, __) => pct);
+        _ProgressionParBlock[e.ElementId] = e;
+        //...
+        var progressionEvent = new PipeProgressionEvent(ElementId,ElementLibelle,Fait, Total, e);
+        BlockProgressionChanged?.Invoke(this, progressionEvent);
     }
 
-    public double GetProgressionEtape(string etapeId)
+    public event EventHandler<ProgressionEvent>? PipeProgressionChanged;
+
+    public void NotifierProgressionPipe(long fait, long total, ProgressionEvent? lastBlockProgressionEvent = null)
     {
-        return _ProgressionParEtape.TryGetValue(etapeId, out var pct)
-            ? pct
-            : 0.0;
+        Fait = fait;
+        Total = total;
+        var progressionEvent = new PipeProgressionEvent(ElementId,ElementLibelle,Fait, Total, lastBlockProgressionEvent);
+        BlockProgressionChanged?.Invoke(this, progressionEvent);
     }
 
-    public IDictionary<string, double> GetAllProgress()
+    public void NotifierProgressionPipe(ProgressionEvent e)
     {
         throw new NotImplementedException();
     }
+
+    public void NotifierBlockTraited(BlockInfo blockInfo)
+    {
+        Fait++;
+    }
+
+    public string ElementId { get; set; }
+    public string ElementLibelle { get;  set; }
+    public long Fait { get; set; }
+    public long Total { get; set; }
 }

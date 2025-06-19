@@ -1,16 +1,19 @@
 #nullable enable
+using FluentPipe.Blocks;
+using FluentPipe.Builder.Entity;
+
 namespace FluentPipe.Runner;
 
-public interface IPipeProgressionManager
+public interface IPipeProgressionManager: IProgressionElement
 {
-    /// <summary>
-    ///   Notifie la progression (en pourcentage 0–100) d’une étape.
-    /// </summary>
-    void NotifierProgression(string etapeId, double percentage);
+    public event EventHandler<ProgressionEvent>? BlockProgressionChanged;
 
-    /// <summary>
-    ///   Récupère la progression courante (0–100) pour l’étape donnée.
-    ///   Si l’étape n’a jamais été rapportée, retourne 0.
-    /// </summary>
-    double GetProgressionEtape(string etapeId);
+    void OnProgressionBlock(object? sender, ProgressionEvent e);
+    
+    public event EventHandler<ProgressionEvent>? PipeProgressionChanged;
+
+    void NotifierProgressionPipe(long fait, long total, ProgressionEvent? lastBlockProgressionEvent = null);
+    
+    void NotifierBlockTraited(BlockInfo blockInfo);
+    
 }

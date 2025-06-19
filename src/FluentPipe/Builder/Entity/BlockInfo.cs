@@ -5,9 +5,9 @@ using FluentPipe.Builder.Contracts;
 namespace FluentPipe.Builder.Entity;
 
 [DebuggerDisplay("{TypeDuBlock.Name} - {Option}")]
-public sealed record Etape : IEtape
+public sealed record BlockInfo : IBlockInfo
 {
-    public Etape(Type TypeDuBlock, IPipeOption? Option = null, RunOption? RunOpt = null)
+    public BlockInfo(Type TypeDuBlock, IPipeOption? Option = null, RunOption? RunOpt = null)
     {
         this.TypeDuBlock = TypeDuBlock;
         this.Option = Option;

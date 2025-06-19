@@ -5,15 +5,15 @@ using FluentPipe.InjectionHelper;
 
 namespace FluentPipe.Builder;
 
-public sealed class SwitchBuilder<TEntree, TSortie, TInput>(List<IEtape> builderEtapes) : ISwithBuilder<TEntree, TSortie, TInput>
+public sealed class SwitchBuilder<TEntree, TSortie, TInput>(List<IBlockInfo> builderEtapes) : ISwithBuilder<TEntree, TSortie, TInput>
 {
-    private List<IEtape> _pipes = new();
+    private List<IBlockInfo> _pipes = new();
 
     public ISwithBuilder<TEntree, TSortie, TInput> Case<TBlock>(bool bindingIsEnable)
         where TBlock : IPipeBlock<TEntree, TSortie>
     {
         if (bindingIsEnable && _pipes.Count == 0)
-            _pipes.Add(new Etape(ServiceRegistryHelper.GetServiceType<TBlock>()));
+            _pipes.Add(new BlockInfo(ServiceRegistryHelper.GetServiceType<TBlock>()));
 
         return this;
     }
@@ -24,7 +24,7 @@ public sealed class SwitchBuilder<TEntree, TSortie, TInput>(List<IEtape> builder
     {
         var isEnabled = bindingIsEnable(option);
         if (isEnabled && _pipes.Count == 0)
-            _pipes.Add(new Etape(ServiceRegistryHelper.GetServiceType<TBlock>(), option));
+            _pipes.Add(new BlockInfo(ServiceRegistryHelper.GetServiceType<TBlock>(), option));
 
         return this;
     }
@@ -34,7 +34,7 @@ public sealed class SwitchBuilder<TEntree, TSortie, TInput>(List<IEtape> builder
         if (bindingIsEnable && _pipes.Count == 0)
         {
             var etapes = pipe.GetDetails();
-            _pipes.AddRange(etapes.Etapes);
+            _pipes.AddRange(etapes.Blocks);
         }
 
         return this;

@@ -1,3 +1,3 @@
 ﻿namespace FluentPipe.Builder.Contracts;
 
-public interface IEtape;
+public interface IBlockInfo;

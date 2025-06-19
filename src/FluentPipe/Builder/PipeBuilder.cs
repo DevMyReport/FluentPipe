@@ -7,7 +7,7 @@ namespace FluentPipe.Builder;
 
 public class PipeBuilder<TEntree, TSortie> : IPipeBuilder<TEntree, TSortie>
 {
-    protected readonly List<IEtape> _pipes = new();
+    protected readonly List<IBlockInfo> _pipes = new();
 
     private RunOption? _parallelModeOption;
 
@@ -15,7 +15,7 @@ public class PipeBuilder<TEntree, TSortie> : IPipeBuilder<TEntree, TSortie>
     {
     }
 
-    internal PipeBuilder(IReadOnlyList<IEtape> pipes)
+    internal PipeBuilder(IReadOnlyList<IBlockInfo> pipes)
     {
         _pipes = [.. pipes];
     }
@@ -32,7 +32,7 @@ public class PipeBuilder<TEntree, TSortie> : IPipeBuilder<TEntree, TSortie>
     {
         var details = pipe.GetDetails();
 
-        _pipes.AddRange(details.Etapes);
+        _pipes.AddRange(details.Blocks);
         return Convert<TOut>();
     }
 
@@ -44,7 +44,7 @@ public class PipeBuilder<TEntree, TSortie> : IPipeBuilder<TEntree, TSortie>
         if (bindingIsEnable)
         {
             var details = pipe.GetDetails();
-            _pipes.AddRange(details.Etapes);
+            _pipes.AddRange(details.Blocks);
         }
 
         return Convert<TSortie>();
@@ -62,8 +62,8 @@ public class PipeBuilder<TEntree, TSortie> : IPipeBuilder<TEntree, TSortie>
     {
         if (bindingIsEnable)
         {
-            var etape = new Etape(ServiceRegistryHelper.GetServiceType<TIn>(), null, _parallelModeOption);
-            _pipes.Add(new DynamicEtape(etape));
+            var etape = new BlockInfo(ServiceRegistryHelper.GetServiceType<TIn>(), null, _parallelModeOption);
+            _pipes.Add(new DynamicBlockInfo(etape));
         }
 
         return Convert<TOut>();
@@ -76,8 +76,8 @@ public class PipeBuilder<TEntree, TSortie> : IPipeBuilder<TEntree, TSortie>
         var isEnabled = bindingIsEnable?.Invoke(option) ?? true;
         if (isEnabled)
         {
-            var etape = new Etape(ServiceRegistryHelper.GetServiceType<TIn>(), option, _parallelModeOption);
-            _pipes.Add(new DynamicEtape(etape));
+            var etape = new BlockInfo(ServiceRegistryHelper.GetServiceType<TIn>(), option, _parallelModeOption);
+            _pipes.Add(new DynamicBlockInfo(etape));
         }
 
         return Convert<TOut>();
@@ -96,7 +96,7 @@ public class PipeBuilder<TEntree, TSortie> : IPipeBuilder<TEntree, TSortie>
     {
         var isEnabled = bindingIsEnable ?? true;
         if (isEnabled)
-            _pipes.Add(new Etape(ServiceRegistryHelper.GetServiceType<TBlock>(), null, _parallelModeOption));
+            _pipes.Add(new BlockInfo(ServiceRegistryHelper.GetServiceType<TBlock>(), null, _parallelModeOption));
         return Convert<TOut>();
     }
 
@@ -114,7 +114,7 @@ public class PipeBuilder<TEntree, TSortie> : IPipeBuilder<TEntree, TSortie>
     {
         var isEnabled = bindingIsEnable?.Invoke(option) ?? true;
         if (isEnabled)
-            _pipes.Add(new Etape(ServiceRegistryHelper.GetServiceType<TBlock>(), option, _parallelModeOption));
+            _pipes.Add(new BlockInfo(ServiceRegistryHelper.GetServiceType<TBlock>(), option, _parallelModeOption));
         return Convert<TOut>();
     }
 
@@ -123,7 +123,7 @@ public class PipeBuilder<TEntree, TSortie> : IPipeBuilder<TEntree, TSortie>
     {
         var isEnabled = bindingIsEnable ?? true;
         if (isEnabled)
-            _pipes.Add(new Etape(ServiceRegistryHelper.GetServiceType<TBlock>(), null, _parallelModeOption));
+            _pipes.Add(new BlockInfo(ServiceRegistryHelper.GetServiceType<TBlock>(), null, _parallelModeOption));
         return new PipeParallelBuilder<TEntree, IEnumerable<TPrimitif>, TPrimitif>(_pipes);
     }
 
@@ -133,13 +133,13 @@ public class PipeBuilder<TEntree, TSortie> : IPipeBuilder<TEntree, TSortie>
     {
         var isEnabled = bindingIsEnable?.Invoke(option) ?? true;
         if (isEnabled)
-            _pipes.Add(new Etape(ServiceRegistryHelper.GetServiceType<TBlock>(), option, _parallelModeOption));
+            _pipes.Add(new BlockInfo(ServiceRegistryHelper.GetServiceType<TBlock>(), option, _parallelModeOption));
         return new PipeParallelBuilder<TEntree, IEnumerable<TPrimitif>, TPrimitif>(_pipes);
     }
 
     public IPipeBuilder<TEntree, TSortie> ResetScope()
     {
-        _pipes.Add(new ScopeEtape());
+        _pipes.Add(new ScopeBlockInfo());
         return this;
     }
 

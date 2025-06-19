@@ -16,18 +16,18 @@ public class PipeBuilderTests
             .Next<ReverseBlock, string>()
             .Next<ToIntBlock, int>();
 
-        var expected = new List<Etape>
+        var expected = new List<BlockInfo>
         {
-            new Etape(typeof(ReverseBlock)),
-            new Etape(typeof(ToIntBlock))
+            new BlockInfo(typeof(ReverseBlock)),
+            new BlockInfo(typeof(ToIntBlock))
         }.ToArray();
 
         var values = builder.GetDetails();
 
-        Assert.AreEqual(expected.Length, values.Etapes.Count);
+        Assert.AreEqual(expected.Length, values.Blocks.Count);
 
         for (var i = 0; i < expected.Length; i++)
-            Assert.AreEqual(expected[i].TypeDuBlock, ((Etape)values.Etapes[i]).TypeDuBlock);
+            Assert.AreEqual(expected[i].TypeDuBlock, ((BlockInfo)values.Blocks[i]).TypeDuBlock);
     }
 
     [TestMethod]
@@ -38,17 +38,17 @@ public class PipeBuilderTests
             .Next<ReverseBlock, string>(false)
             .Next<ToIntBlock, int>();
 
-        var expected = new List<Etape>
+        var expected = new List<BlockInfo>
         {
-            new Etape(typeof(ToIntBlock))
+            new BlockInfo(typeof(ToIntBlock))
         }.ToArray();
 
         var values = builder.GetDetails();
 
-        Assert.AreEqual(expected.Length, values.Etapes.Count);
+        Assert.AreEqual(expected.Length, values.Blocks.Count);
 
         for (var i = 0; i < expected.Length; i++)
-            Assert.AreEqual(expected[i].TypeDuBlock, ((Etape)values.Etapes[i]).TypeDuBlock);
+            Assert.AreEqual(expected[i].TypeDuBlock, ((BlockInfo)values.Blocks[i]).TypeDuBlock);
     }
 
     [TestMethod]
@@ -60,18 +60,18 @@ public class PipeBuilderTests
             .Next<ToStringBlock, string, ToStringBlockOption>(new ToStringBlockOption())
             .Next<ReverseBlock, string>(false);
 
-        var expected = new List<Etape>
+        var expected = new List<BlockInfo>
         {
-            new Etape(typeof(ToIntBlock)),
-            new Etape(typeof(ToStringBlock), new ToStringBlockOption())
+            new BlockInfo(typeof(ToIntBlock)),
+            new BlockInfo(typeof(ToStringBlock), new ToStringBlockOption())
         }.ToArray();
 
         var values = builder.GetDetails();
 
-        Assert.AreEqual(expected.Length, values.Etapes.Count);
+        Assert.AreEqual(expected.Length, values.Blocks.Count);
 
         for (var i = 0; i < expected.Length; i++)
-            Assert.AreEqual(expected[i].TypeDuBlock, ((Etape)values.Etapes[i]).TypeDuBlock);
+            Assert.AreEqual(expected[i].TypeDuBlock, ((BlockInfo)values.Blocks[i]).TypeDuBlock);
     }
 
     [TestMethod]
@@ -91,20 +91,20 @@ public class PipeBuilderTests
             .Next<PrintBlock, string>()
             ;
 
-        var expected = new List<Etape>
+        var expected = new List<BlockInfo>
         {
-            new Etape(typeof(ReadBlock)),
-            new Etape(typeof(MinBlock)),
-            new Etape(typeof(ToStringBlock), new ToStringBlockOption { Format = "TOTO" }),
-            new Etape(typeof(PrintBlock))
+            new BlockInfo(typeof(ReadBlock)),
+            new BlockInfo(typeof(MinBlock)),
+            new BlockInfo(typeof(ToStringBlock), new ToStringBlockOption { Format = "TOTO" }),
+            new BlockInfo(typeof(PrintBlock))
         }.ToArray();
 
         var values = builder.GetDetails();
 
-        Assert.AreEqual(expected.Length, values.Etapes.Count);
+        Assert.AreEqual(expected.Length, values.Blocks.Count);
 
         for (var i = 0; i < expected.Length; i++)
-            Assert.AreEqual(expected[i].TypeDuBlock, ((Etape)values.Etapes[i]).TypeDuBlock);
+            Assert.AreEqual(expected[i].TypeDuBlock, ((BlockInfo)values.Blocks[i]).TypeDuBlock);
     }
 
     [TestMethod]
@@ -120,18 +120,18 @@ public class PipeBuilderTests
                 .Next<PrintBlock, string>()
             ;
 
-        var expected = new List<Etape>
+        var expected = new List<BlockInfo>
         {
-            new Etape(typeof(AddOneBlock)),
-            new Etape(typeof(ToStringBlock), new ToStringBlockOption { Format = "TOTO" }),
-            new Etape(typeof(PrintBlock))
+            new BlockInfo(typeof(AddOneBlock)),
+            new BlockInfo(typeof(ToStringBlock), new ToStringBlockOption { Format = "TOTO" }),
+            new BlockInfo(typeof(PrintBlock))
         }.ToArray();
 
         var values = builder.GetDetails();
 
-        Assert.AreEqual(expected.Length, values.Etapes.Count);
+        Assert.AreEqual(expected.Length, values.Blocks.Count);
 
         for (var i = 0; i < expected.Length; i++)
-            Assert.AreEqual(expected[i].TypeDuBlock, ((Etape)values.Etapes[i]).TypeDuBlock);
+            Assert.AreEqual(expected[i].TypeDuBlock, ((BlockInfo)values.Blocks[i]).TypeDuBlock);
     }
 }

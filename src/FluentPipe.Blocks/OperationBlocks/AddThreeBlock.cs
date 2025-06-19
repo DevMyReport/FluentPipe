@@ -39,7 +39,7 @@ public sealed class AddThreeBlock(IPipeRunner pipeRunner) : PipeBlockBase<int, i
         return ComputeResult.FromResult(sortie);
     }
 
-    public override async Task<IList<ProcessStep>> ExplainAsync(Etape context, CancellationToken ct)
+    public override async Task<IList<ProcessStep>> ExplainAsync(BlockInfo context, CancellationToken ct)
     {
         var pipe = CreerPipeline(((AddThreeOption)context.Option!).Increment);
         var sortie = await pipeRunner.ExplainAsync(pipe.GetDetails(), ct);

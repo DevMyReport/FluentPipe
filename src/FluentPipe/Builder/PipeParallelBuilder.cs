@@ -11,7 +11,7 @@ public sealed class PipeParallelBuilder<TEntree, TListeSortie, TElementSortie> :
     public PipeParallelBuilder()
     { }
 
-    public PipeParallelBuilder(IReadOnlyList<IEtape> pipes)
+    public PipeParallelBuilder(IReadOnlyList<IBlockInfo> pipes)
         : base(pipes)
     { }
 
@@ -30,7 +30,7 @@ public sealed class PipeParallelBuilder<TEntree, TListeSortie, TElementSortie> :
         where TBlock : IPipeBlock<TElementSortie, TOut>
     {
         var option = new RunOption(new RunMonoBlockParallelOption(maxParallelism));
-        _pipes.Add(new Etape(ServiceRegistryHelper.GetServiceType<TBlock>(), RunOpt: option));
+        _pipes.Add(new BlockInfo(ServiceRegistryHelper.GetServiceType<TBlock>(), RunOpt: option));
 
         return Convert<TOut>();
     }
@@ -40,7 +40,7 @@ public sealed class PipeParallelBuilder<TEntree, TListeSortie, TElementSortie> :
         where TOption : IPipeOption
     {
         var runOption = new RunOption(new RunMonoBlockParallelOption(maxParallelism));
-        _pipes.Add(new Etape(ServiceRegistryHelper.GetServiceType<TBlock>(), option, RunOpt: runOption));
+        _pipes.Add(new BlockInfo(ServiceRegistryHelper.GetServiceType<TBlock>(), option, RunOpt: runOption));
 
         return Convert<TOut>();
     }
@@ -50,10 +50,10 @@ public sealed class PipeParallelBuilder<TEntree, TListeSortie, TElementSortie> :
         var runOption = new RunOption(new RunMonoBlockParallelOption(maxParallelism));
         var details = pipe.GetDetails();
 
-        _pipes.AddRange(details.Etapes.Select(ie =>
+        _pipes.AddRange(details.Blocks.Select(ie =>
             ie switch
             {
-                Etape etape => new Etape(etape.TypeDuBlock, etape.Option, runOption), // Permet d'intégrer le RunOption
+                BlockInfo etape => new BlockInfo(etape.TypeDuBlock, etape.Option, runOption), // Permet d'intégrer le RunOption
                 _ => ie
             }
         ));
@@ -67,10 +67,10 @@ public sealed class PipeParallelBuilder<TEntree, TListeSortie, TElementSortie> :
         {
             var runOption = new RunOption(new RunMonoBlockParallelOption(maxParallelism));
             var details = pipe.GetDetails();
-            _pipes.AddRange(details.Etapes.Select(ie =>
+            _pipes.AddRange(details.Blocks.Select(ie =>
                 ie switch
                 {
-                    Etape etape => new Etape(etape.TypeDuBlock, etape.Option, runOption), // Permet d'intégrer le RunOption
+                    BlockInfo etape => new BlockInfo(etape.TypeDuBlock, etape.Option, runOption), // Permet d'intégrer le RunOption
                     _ => ie
                 }
             ));
@@ -90,8 +90,8 @@ public sealed class PipeParallelBuilder<TEntree, TListeSortie, TElementSortie> :
         where TBlock : IBuilderProcessBlock<TElementSortie, TOut>
     {
         var option = new RunOption(new RunMonoBlockParallelOption(maxParallelism));
-        var etape = new Etape(ServiceRegistryHelper.GetServiceType<TBlock>(), RunOpt: option);
-        _pipes.Add(new DynamicEtape(etape));
+        var etape = new BlockInfo(ServiceRegistryHelper.GetServiceType<TBlock>(), RunOpt: option);
+        _pipes.Add(new DynamicBlockInfo(etape));
         return Convert<TOut>();
     }
 
@@ -103,8 +103,8 @@ public sealed class PipeParallelBuilder<TEntree, TListeSortie, TElementSortie> :
         {
             UseSubscope = useScope
         };
-        var etape = new Etape(ServiceRegistryHelper.GetServiceType<TBlock>(), option, RunOpt: runOption);
-        _pipes.Add(new DynamicEtape(etape));
+        var etape = new BlockInfo(ServiceRegistryHelper.GetServiceType<TBlock>(), option, RunOpt: runOption);
+        _pipes.Add(new DynamicBlockInfo(etape));
         return Convert<TOut>();
     }
 }

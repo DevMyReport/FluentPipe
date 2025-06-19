@@ -26,16 +26,23 @@ public abstract class PipeBlockHelper<TIn, TOut>
 
     #region ExplainAsync
 
-    public virtual Task<IList<ProcessStep>> ExplainAsync(Etape context, CancellationToken ct)
+    public virtual Task<IList<ProcessStep>> ExplainAsync(BlockInfo context, CancellationToken ct)
     {
         var step = FormatExplainEtape(context);
         return Task.FromResult<IList<ProcessStep>>(new List<ProcessStep> { step });
     }
 
-    protected virtual ProcessStep FormatExplainEtape(Etape context)
+    protected virtual ProcessStep FormatExplainEtape(BlockInfo context)
     {
         return new ProcessStep(context);
     }
 
     #endregion
+    
+    public event EventHandler<ProgressionEvent>? ProgressChanged;
+    
+    public void NotifierProgression(ProgressionEvent evt)
+    {
+        ProgressChanged?.Invoke(this, evt);
+    }
 }

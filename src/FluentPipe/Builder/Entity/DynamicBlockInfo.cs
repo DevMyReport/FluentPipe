@@ -2,4 +2,4 @@
 
 namespace FluentPipe.Builder.Entity;
 
-public sealed record DynamicEtape(Etape Etape) : IEtape;
+public sealed record DynamicBlockInfo(BlockInfo BlockInfo) : IBlockInfo;

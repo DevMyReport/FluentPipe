@@ -14,8 +14,8 @@ public sealed record ProcessStep
         Duree = duree;
     }
 
-    public ProcessStep(Etape etape, TimeSpan duree = new TimeSpan())
-        : this(etape.TypeDuBlock.FullName!, etape.Option?.Descrition(), etape.RunOpt.Description(), duree)
+    public ProcessStep(BlockInfo blockInfo, TimeSpan duree = new TimeSpan())
+        : this(blockInfo.TypeDuBlock.FullName!, blockInfo.Option?.Descrition(), blockInfo.RunOpt.Description(), duree)
     { }
 
     public string Key { get; }

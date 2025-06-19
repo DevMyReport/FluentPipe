@@ -7,11 +7,11 @@ namespace FluentPipe.Builder;
 
 public sealed class ParallelBuilder<TEntree, TSortie, TInput> : IParallelBuilder<TEntree, TSortie, TInput>
 {
-    private readonly List<IEtape> _builderEtapes;
+    private readonly List<IBlockInfo> _builderEtapes;
     private readonly RunOption _parallelModeOption;
-    private readonly List<Etape> _pipes = new();
+    private readonly List<BlockInfo> _pipes = new();
 
-    internal ParallelBuilder(List<IEtape> builderEtapes)
+    internal ParallelBuilder(List<IBlockInfo> builderEtapes)
     {
         _builderEtapes = builderEtapes;
         _parallelModeOption = new RunOption(new RunMultiBlockParallelOption());
@@ -24,7 +24,7 @@ public sealed class ParallelBuilder<TEntree, TSortie, TInput> : IParallelBuilder
     {
         var isEnabled = bindingIsEnable ?? true;
         if (isEnabled)
-            _pipes.Add(new Etape(ServiceRegistryHelper.GetServiceType<TBlock>(), null, _parallelModeOption));
+            _pipes.Add(new BlockInfo(ServiceRegistryHelper.GetServiceType<TBlock>(), null, _parallelModeOption));
 
         return this;
     }
@@ -35,7 +35,7 @@ public sealed class ParallelBuilder<TEntree, TSortie, TInput> : IParallelBuilder
     {
         var isEnabled = bindingIsEnable?.Invoke(option) ?? true;
         if (isEnabled)
-            _pipes.Add(new Etape(ServiceRegistryHelper.GetServiceType<TBlock>(), option, _parallelModeOption));
+            _pipes.Add(new BlockInfo(ServiceRegistryHelper.GetServiceType<TBlock>(), option, _parallelModeOption));
 
         return this;
     }
@@ -48,7 +48,7 @@ public sealed class ParallelBuilder<TEntree, TSortie, TInput> : IParallelBuilder
         var isEnabled = bindingIsEnable?.Invoke(option) ?? true;
 
         if (isEnabled)
-            _pipes.Add(new Etape(ServiceRegistryHelper.GetServiceType<TBlock>(), option, _parallelModeOption));
+            _pipes.Add(new BlockInfo(ServiceRegistryHelper.GetServiceType<TBlock>(), option, _parallelModeOption));
 
         return this;
     }
@@ -57,7 +57,7 @@ public sealed class ParallelBuilder<TEntree, TSortie, TInput> : IParallelBuilder
 
     public IPipeBuilder<TInput, IEnumerable<TSortie>> ParallelEnd()
     {
-        _builderEtapes.Add(new ParallelEtape(_pipes));
+        _builderEtapes.Add(new ParallelBlockInfo(_pipes));
         return new PipeBuilder<TInput, IEnumerable<TSortie>>(_builderEtapes);
     }
 

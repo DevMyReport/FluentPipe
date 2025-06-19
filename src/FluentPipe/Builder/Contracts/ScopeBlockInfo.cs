@@ -1,3 +1,3 @@
 ﻿namespace FluentPipe.Builder.Contracts;
 
-public class ScopeEtape : IEtape;
+public class ScopeBlockInfo : IBlockInfo;

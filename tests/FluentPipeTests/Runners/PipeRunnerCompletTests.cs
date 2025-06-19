@@ -55,14 +55,14 @@ public class PipeRunnerCompletTests : BasePipeInit
     {
         public List<(string Id, double Percentage)> Calls { get; } = new();
 
-        public void NotifierProgression(string etapeId, double percentage)
+        public void NotifierProgressionRunner(string etapeId, double percentage)
         {
             Calls.Add((etapeId, percentage));
         }
 
-        public double GetProgressionEtape(string etapeId)
+        public double GetProgressionEtape(string blockId)
         {
-            return Calls.LastOrDefault(c => c.Id == etapeId).Percentage;
+            return Calls.LastOrDefault(c => c.Id == blockId).Percentage;
         }
     }
 }

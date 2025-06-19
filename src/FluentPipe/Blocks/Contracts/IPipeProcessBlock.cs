@@ -6,7 +6,7 @@ namespace FluentPipe.Blocks.Contracts;
 /// <summary>
 ///     Interface de contract pour lancer le connecteur via le runner
 /// </summary>
-public interface IPipeProcessBlock : IProcessConverter
+public interface IPipeProcessBlock : IProcessConverter, INotifierProgression
 {
     /// <summary>
     ///     Generic interface lancé par le runner
@@ -15,7 +15,7 @@ public interface IPipeProcessBlock : IProcessConverter
     /// <param name="context"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<ComputeResult> ComputeAsync(object input, Etape context, CancellationToken cancellationToken);
+    Task<ComputeResult> ComputeAsync(object input, BlockInfo context, CancellationToken cancellationToken);
 
     /// <summary>
     ///     Retourne le detail sur la chaine d'execution
@@ -23,12 +23,12 @@ public interface IPipeProcessBlock : IProcessConverter
     /// <param name="context"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<IList<ProcessStep>> ExplainAsync(Etape context, CancellationToken cancellationToken);
+    Task<IList<ProcessStep>> ExplainAsync(BlockInfo context, CancellationToken cancellationToken);
 }
 
 public interface IBuilderProcessBlock : IProcessConverter
 {
-    IReadOnlyList<IEtape> GetBuilder(object input, Etape context, bool isExplain);
+    IReadOnlyList<IBlockInfo> GetBuilder(object input, BlockInfo context, bool isExplain);
 }
 
 public interface IProcessConverter

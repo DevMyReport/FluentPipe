@@ -26,15 +26,6 @@ public interface IPipeRunner<TErrorManager, out TEtatManager, TState, TTrigger, 
     public TEtatManager EtatManager { get; } 
     
     public TProgressionManager ProgressionManager { get; } 
-    
-    public Task<SortieRunner<TOut, TErrorManager>> RunAsync<TIn, TOut>(
-        PipeBuilderDetails<TIn, TOut> detail,
-        [DisallowNull] TIn input,
-        CancellationToken cancellationToken = default);
-
-    public Task<SortieRunner<TOut, TErrorManager>> ExplainAsync<TIn, TOut>(
-        PipeBuilderDetails<TIn, TOut> detail,
-        CancellationToken cancellationToken = default);
 }
 
 public interface IPipeRunner<TErrorManager> where TErrorManager : IPipeErreurManager
