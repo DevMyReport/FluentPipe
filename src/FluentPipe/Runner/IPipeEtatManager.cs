@@ -7,6 +7,7 @@ namespace FluentPipe.Runner;
 
 public interface IPipeEtatManager<TEtat, TDeclancheur>
 {
+    void AjouterMachineAEtat(string blockId);
     /// <summary>
     /// Obtenir l'état d'une étape
     /// </summary>
@@ -35,11 +36,11 @@ public abstract class PipeEtatManagerBase<TEtat, TDeclancheur> : IPipeEtatManage
     /// </summary>
     private readonly ConcurrentDictionary<string, StateMachine<TEtat, TDeclancheur>> _machines = new();
     
-    public void AjouterMachineAEtat(string etapeId)
+    public void AjouterMachineAEtat(string blockId)
     {
-        var machine = CreerMachineAEtat(etapeId);
-        if (!_machines.TryAdd(etapeId, machine))
-            throw new InvalidOperationException($"Machine '{etapeId}' is existe déjà");
+        var machine = CreerMachineAEtat(blockId);
+        if (!_machines.TryAdd(blockId, machine))
+            throw new InvalidOperationException($"Machine '{blockId}' is existe déjà");
     }
     
     public StateMachine<TEtat, TDeclancheur> GetMachineByEtapeId(string etapeId)

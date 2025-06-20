@@ -87,7 +87,7 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
                 case DynamicBlockInfo dynamicStep when dynamicStep.BlockInfo.RunOpt.MonoBlockParallelOption is
                     { } optionMono:
 
-                    //il faut lancer le meme connecteur autant de foi qu'il y'a de valeur dans la list
+                    //il faut lancer le meme connecteur autant de fois qu'il y'a de valeur dans la list
                     var dynamicValues = (data as IEnumerable)?.Cast<object>();
                     if (dynamicValues == null)
                         throw new InvalidCastException(
@@ -272,11 +272,11 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
             yield return etape;
     }
 
-    private IPipeProcessBlock InstancierBlock(BlockInfo step, RunnerState state)
+    private IPipeProcessBlock InstancierBlock(BlockInfo blockInfo, RunnerState state)
     {
-        var svc = state.Scope.ServiceProvider.GetRequiredKeyedService<IPipeProcessBlock>(step.TypeDuBlock);
-        OnInstancierBlock(step, svc);
-        return svc;
+        var block = state.Scope.ServiceProvider.GetRequiredKeyedService<IPipeProcessBlock>(blockInfo.TypeDuBlock);
+        OnInstancierBlock(blockInfo, block);
+        return block;
     }
 
     /// <summary>
@@ -318,10 +318,22 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
         _ErreurManager.Cancel();
     }
 
+    /// <summary>
+    /// À surcharger dans la classe metier qui gere le Pipe pour s'abonner aux événements des blocks
+    /// Progression vie ProgressionManager
+    /// </summary>
+    /// <param name="blockInfo"></param>
+    /// <param name="svc"></param>
     protected virtual void OnInstancierBlock(BlockInfo blockInfo, IPipeProcessBlock svc)
     {
     }
-
+    
+    /// <summary>
+    /// À surcharger dans la classe metier qui gere le Pipe pour se désabonner aux événements des blocks
+    /// Progression vie ProgressionManager
+    /// </summary>
+    /// <param name="blockInfo"></param>
+    /// <param name="svc"></param>
     protected virtual void OnTerminerBlock(BlockInfo blockInfo, IPipeProcessBlock svc)
     {
     }
@@ -451,8 +463,9 @@ public abstract class PipeRunnerBase<TErreurManager, TEtatManager, TEtat, TDecla
 
     protected override void OnInstancierBlock(BlockInfo blockInfo, IPipeProcessBlock svc)
     {
-        EtatManager.DeclancherEtapeDemarred(blockInfo.TypeDuBlock.Name);
         svc.ProgressChanged += ProgressionManager.OnProgressionBlock;
+        EtatManager.AjouterMachineAEtat(blockInfo.TypeDuBlock.Name);
+        EtatManager.DeclancherEtapeDemarred(blockInfo.TypeDuBlock.Name);
         base.OnInstancierBlock(blockInfo, svc);
     }
 
@@ -460,7 +473,7 @@ public abstract class PipeRunnerBase<TErreurManager, TEtatManager, TEtat, TDecla
     {
         EtatManager.DeclancherEtapeTermined(blockInfo.TypeDuBlock.Name);
         ProgressionManager.NotifierBlockTraited(blockInfo);
-        svc.ProgressChanged -= ProgressionManager.OnProgressionBlock;
         base.OnTerminerBlock(blockInfo, svc);
+        svc.ProgressChanged -= ProgressionManager.OnProgressionBlock;
     }
 }
