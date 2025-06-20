@@ -14,7 +14,7 @@ public interface IPipeRunnerAvecEtatEtProgression : IPipeRunner<PipeErreurManage
 
 public sealed record SortieRunner<TOut, TError>(
     TOut? Sortie,
-    IReadOnlyList<ProcessStep> Etapes,
+    IReadOnlyList<ProcessBlock> Blocks,
     TError ErrorManager,
     TimeSpan DureeComplete);
 

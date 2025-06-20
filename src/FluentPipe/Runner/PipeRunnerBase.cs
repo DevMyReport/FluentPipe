@@ -60,17 +60,17 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
     /// <summary>
     ///     Lance les étapes en fonction de leurs configurations
     /// </summary>
-    /// <param name="steps"></param>
+    /// <param name="blocks"></param>
     /// <param name="input"></param>
     /// <param name="state"></param>
     /// <returns></returns>
-    private async Task<(List<ProcessStep>, object?)> RunInMixed(IReadOnlyList<IBlockInfo> steps, object input,
+    private async Task<(List<ProcessBlock>, object?)> RunInMixed(IReadOnlyList<IBlockInfo> blocks, object input,
         RunnerState state)
     {
         var data = input;
-        var listEtapes = new List<ProcessStep>();
+        var listeBlocks = new List<ProcessBlock>();
 
-        foreach (var stepGen in steps)
+        foreach (var stepGen in blocks)
         {
             if (state.CancellationTokenSource.IsCancellationRequested)
                 break;
@@ -96,7 +96,7 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
                     (var listSteps, data) = await RunInDynamicParallel(dynamicStep, dynamicValues,
                         optionMono.MaxDegreeOfParallelism, state);
 
-                    listEtapes.AddRange(listSteps);
+                    listeBlocks.AddRange(listSteps);
                     break;
 
                 case DynamicBlockInfo dynamicStep:
@@ -104,7 +104,7 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
                     var (extraSteps, _) = GetDynamicEtapes(dynamicStep.BlockInfo, data, state);
                     var (s, o) = await RunInMixed(extraSteps, data, state);
 
-                    listEtapes.AddRange(s);
+                    listeBlocks.AddRange(s);
                     data = o;
                     break;
 
@@ -113,7 +113,7 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
                     //plusieurs connecteur a lancé en parallele
                     var subList = stepMulti.Etapes;
                     (var listStepsMulti, data) = await RunInParallel(subList, data, state);
-                    listEtapes.AddRange(listStepsMulti);
+                    listeBlocks.AddRange(listStepsMulti);
                     break;
                 }
 
@@ -127,21 +127,21 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
                     (var listStepsMono, data) =
                         await RunInParallel(stepMono, values, optionMono.MaxDegreeOfParallelism, state);
 
-                    listEtapes.AddRange(listStepsMono);
+                    listeBlocks.AddRange(listStepsMono);
                     break;
                 }
 
                 case BlockInfo stepMono:
                     var (fini, step, _) = await ComputeStepAsync(stepMono, data, state);
                     data = step.Value;
-                    listEtapes.AddRange(GetAllProcessSteps(fini, step));
+                    listeBlocks.AddRange(GetAllProcessSteps(fini, step));
                     state.SetStateOnError(step);
                     state.SetStateWarning(step);
                     break;
             }
         }
 
-        return (listEtapes, data);
+        return (listeBlocks, data);
     }
 
     /// <summary>
@@ -151,10 +151,10 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
     /// <param name="input"></param>
     /// <param name="state"></param>
     /// <returns></returns>
-    private async Task<(IEnumerable<ProcessStep>, object?)> RunInParallel(IEnumerable<BlockInfo> steps,
+    private async Task<(IEnumerable<ProcessBlock>, object?)> RunInParallel(IEnumerable<BlockInfo> steps,
         object input, RunnerState state)
     {
-        var values = new ConcurrentBag<(ProcessStep, ComputeResult)>();
+        var values = new ConcurrentBag<(ProcessBlock, ComputeResult)>();
         var option = new ParallelOptions();
         IPipeProcessBlock? converter = null;
 
@@ -189,10 +189,10 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
     /// <param name="step"></param>
     /// <param name="state"></param>
     /// <returns></returns>
-    private async Task<(IEnumerable<ProcessStep>, object?)> RunInParallel(BlockInfo step,
+    private async Task<(IEnumerable<ProcessBlock>, object?)> RunInParallel(BlockInfo step,
         IEnumerable<object> inputs, int maxDegreeOfParallelism, RunnerState state)
     {
-        var values = new ConcurrentBag<(ProcessStep, ComputeResult)>();
+        var values = new ConcurrentBag<(ProcessBlock, ComputeResult)>();
         var option = new ParallelOptions
         {
             MaxDegreeOfParallelism = maxDegreeOfParallelism == 0 ? Environment.ProcessorCount : maxDegreeOfParallelism
@@ -232,10 +232,10 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
     /// <param name="step"></param>
     /// <param name="state"></param>
     /// <returns></returns>
-    private async Task<(List<ProcessStep>, object?)> RunInDynamicParallel(DynamicBlockInfo step,
+    private async Task<(List<ProcessBlock>, object?)> RunInDynamicParallel(DynamicBlockInfo step,
         IEnumerable<object> inputs, int maxDegreeOfParallelism, RunnerState state)
     {
-        var values = new ConcurrentBag<(List<ProcessStep> etapes, object? data)>();
+        var values = new ConcurrentBag<(List<ProcessBlock> etapes, object? data)>();
         var option = new ParallelOptions
         {
             MaxDegreeOfParallelism = maxDegreeOfParallelism == 0 ? Environment.ProcessorCount : maxDegreeOfParallelism
@@ -265,10 +265,10 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
         return (allEtapes, svc!.ToTypedEnumerableConverter(allData));
     }
 
-    private IEnumerable<ProcessStep> GetAllProcessSteps(ProcessStep process, ComputeResult compute)
+    private IEnumerable<ProcessBlock> GetAllProcessSteps(ProcessBlock process, ComputeResult compute)
     {
         yield return process;
-        foreach (var etape in compute.SousEtapes)
+        foreach (var etape in compute.SousBlocs)
             yield return etape;
     }
 
@@ -282,22 +282,22 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
     /// <summary>
     ///     Execute le connecteur avec options
     /// </summary>
-    /// <param name="step"></param>
+    /// <param name="blockInfo"></param>
     /// <param name="input"></param>
     /// <param name="state"></param>
     /// <returns></returns>
-    private async Task<(ProcessStep, ComputeResult, IPipeProcessBlock)> ComputeStepAsync(BlockInfo step,
+    private async Task<(ProcessBlock, ComputeResult, IPipeProcessBlock)> ComputeStepAsync(BlockInfo blockInfo,
         object input, RunnerState state)
     {
         var sw = Stopwatch.StartNew();
 
-        var svc = InstancierBlock(step, state);
-        var result = await svc.ComputeAsync(input, step, state.CancellationTokenSource.Token);
+        var svc = InstancierBlock(blockInfo, state);
+        var result = await svc.ComputeAsync(input, blockInfo, state.CancellationTokenSource.Token);
 
         sw.Stop();
 
-        OnTerminerBlock(step, svc);
-        return (new ProcessStep(step, sw.Elapsed), result, svc);
+        OnTerminerBlock(blockInfo, svc);
+        return (new ProcessBlock(blockInfo, sw.Elapsed), result, svc);
     }
 
     #region DynamicStep
@@ -355,17 +355,17 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
         return new SortieRunner<TOut, TErreurManager>(default, explains, _ErreurManager, stopwatch.Elapsed);
     }
 
-    private async Task<List<ProcessStep>> ExplainInMixedAsync(
-        IReadOnlyList<IBlockInfo> steps, RunnerState state)
+    private async Task<List<ProcessBlock>> ExplainInMixedAsync(
+        IReadOnlyList<IBlockInfo> blocks, RunnerState state)
     {
-        var explains = new List<ProcessStep>();
+        var explains = new List<ProcessBlock>();
 
-        foreach (var etapeGen in steps)
+        foreach (var etapeGen in blocks)
             switch (etapeGen)
             {
-                case BlockInfo step:
+                case BlockInfo blockInfo:
                 {
-                    var result = await ExplainStepAsync(step, state);
+                    var result = await ExplainStepAsync(blockInfo, state);
                     explains.AddRange(result);
                     break;
                 }
@@ -381,8 +381,8 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
                     break;
                 }
 
-                case DynamicBlockInfo dynamicStep:
-                    var (extraStep, _) = GetDynamicEtapes(dynamicStep.BlockInfo, null!, state);
+                case DynamicBlockInfo dynamicBlock:
+                    var (extraStep, _) = GetDynamicEtapes(dynamicBlock.BlockInfo, null!, state);
                     var exp = await ExplainInMixedAsync(extraStep, state);
                     explains.AddRange(exp);
                     break;
@@ -391,11 +391,11 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
         return explains;
     }
 
-    private async Task<IList<ProcessStep>> ExplainStepAsync(BlockInfo step, RunnerState state)
+    private async Task<IList<ProcessBlock>> ExplainStepAsync(BlockInfo blockInfo, RunnerState state)
     {
-        var svc = InstancierBlock(step, state);
-        var result = await svc.ExplainAsync(step, state.CancellationTokenSource.Token);
-
+        var svc = InstancierBlock(blockInfo, state);
+        var result = await svc.ExplainAsync(blockInfo, state.CancellationTokenSource.Token);
+        OnTerminerBlock(blockInfo, svc);
         return result;
     }
 

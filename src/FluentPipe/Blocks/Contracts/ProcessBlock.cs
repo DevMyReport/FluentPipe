@@ -4,9 +4,9 @@ using FluentPipe.Builder.Entity;
 namespace FluentPipe.Blocks.Contracts;
 
 [DebuggerDisplay("Durée : {Duree}, {Key}")]
-public sealed record ProcessStep
+public sealed record ProcessBlock
 {
-    public ProcessStep(string key, IReadOnlyDictionary<string, string>? description = null, string? parallelGroup = null, TimeSpan duree = new TimeSpan())
+    public ProcessBlock(string key, IReadOnlyDictionary<string, string>? description = null, string? parallelGroup = null, TimeSpan duree = new TimeSpan())
     {
         Key = key;
         Description = description;
@@ -14,7 +14,7 @@ public sealed record ProcessStep
         Duree = duree;
     }
 
-    public ProcessStep(BlockInfo blockInfo, TimeSpan duree = new TimeSpan())
+    public ProcessBlock(BlockInfo blockInfo, TimeSpan duree = new TimeSpan())
         : this(blockInfo.TypeDuBlock.FullName!, blockInfo.Option?.Descrition(), blockInfo.RunOpt.Description(), duree)
     { }
 

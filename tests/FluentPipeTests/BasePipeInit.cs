@@ -30,14 +30,14 @@ public abstract class BasePipeInit
 
     protected static void AssertTime<T>(SortieRunner<T, PipeErreurManager> sortie)
     {
-        var temps = sortie.Etapes.Select(s => s.Duree.TotalMilliseconds).Sum();
+        var temps = sortie.Blocks.Select(s => s.Duree.TotalMilliseconds).Sum();
         Console.WriteLine($"Temps total:{sortie.DureeComplete.Milliseconds} / {temps} ms");
         Assert.IsTrue(sortie.DureeComplete.Milliseconds < temps);
     }
 
     protected static void AssertTime<T>(SortieRunner<T, PipeErreurManager> sortie, int maxTime)
     {
-        var temps = sortie.Etapes.Select(s => s.Duree.TotalMilliseconds).Sum();
+        var temps = sortie.Blocks.Select(s => s.Duree.TotalMilliseconds).Sum();
         Console.WriteLine($"Temps total:{temps} / {maxTime} ms");
         Assert.IsTrue(temps < maxTime);
     }

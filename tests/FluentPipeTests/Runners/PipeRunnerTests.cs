@@ -25,7 +25,7 @@ public class PipeRunnerTests : BasePipeInit
         var result = await _CurrentService.RunAsync(plan, "1234");
 
         Assert.AreEqual(4321, result.Sortie);
-        Assert.AreEqual(2, result.Etapes.Count);
+        Assert.AreEqual(2, result.Blocks.Count);
     }
 
     [TestMethod]
@@ -40,7 +40,7 @@ public class PipeRunnerTests : BasePipeInit
         var result = await _CurrentService.RunAsync(plan, 1234);
 
         Assert.AreEqual(default, result.Sortie);
-        Assert.AreEqual(1, result.Etapes.Count);
+        Assert.AreEqual(1, result.Blocks.Count);
     }
 
     [TestMethod]
@@ -57,7 +57,7 @@ public class PipeRunnerTests : BasePipeInit
         var result = await _CurrentService.RunAsync(plan, "1234");
 
         Assert.AreEqual("TOTO:4321", result.Sortie);
-        Assert.AreEqual(3, result.Etapes.Count);
+        Assert.AreEqual(3, result.Blocks.Count);
     }
 
     [TestMethod]
@@ -72,7 +72,7 @@ public class PipeRunnerTests : BasePipeInit
         var result = await _CurrentService.RunAsync(plan, "1234");
 
         Assert.AreEqual(1234, result.Sortie);
-        Assert.AreEqual(1, result.Etapes.Count);
+        Assert.AreEqual(1, result.Blocks.Count);
     }
 
     [TestMethod]
@@ -160,10 +160,10 @@ public class PipeRunnerTests : BasePipeInit
 
         Assert.IsNotNull(result);
         Assert.AreEqual(103, result.Sortie);
-        Assert.AreEqual(4, result.Etapes.Count);
-        Assert.AreEqual(typeof(AddThreeBlock).FullName, result.Etapes[0].Key);
-        Assert.AreEqual(typeof(AddOneBlock).FullName, result.Etapes[1].Key);
-        Assert.AreEqual(typeof(AddOneBlock).FullName, result.Etapes[2].Key);
-        Assert.AreEqual(typeof(AddOneBlock).FullName, result.Etapes[3].Key);
+        Assert.AreEqual(4, result.Blocks.Count);
+        Assert.AreEqual(typeof(AddThreeBlock).FullName, result.Blocks[0].Key);
+        Assert.AreEqual(typeof(AddOneBlock).FullName, result.Blocks[1].Key);
+        Assert.AreEqual(typeof(AddOneBlock).FullName, result.Blocks[2].Key);
+        Assert.AreEqual(typeof(AddOneBlock).FullName, result.Blocks[3].Key);
     }
 }

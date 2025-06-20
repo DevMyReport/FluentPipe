@@ -98,8 +98,8 @@ public class DynamicParallelTests : BasePipeInit
         var result2 = await _CurrentService.RunAsync(builder2.GetDetails(), 20);
         sw2.Stop();
 
-        var temps1 = result1.Etapes.Select(s => s.Duree.TotalMilliseconds).Sum();
-        var temps2 = result2.Etapes.Select(s => s.Duree.TotalMilliseconds).Sum();
+        var temps1 = result1.Blocks.Select(s => s.Duree.TotalMilliseconds).Sum();
+        var temps2 = result2.Blocks.Select(s => s.Duree.TotalMilliseconds).Sum();
         Console.WriteLine($"Etapes Temps total:{sw1.ElapsedMilliseconds}/{temps1} ms ");
         Console.WriteLine($"Etapes Temps total:{sw2.ElapsedMilliseconds}/{temps2} ms");
 
@@ -121,7 +121,7 @@ public class DynamicParallelTests : BasePipeInit
         var result = await _CurrentService.RunAsync(builder.GetDetails(), 3);
 
         Assert.AreEqual(3, result.Sortie.Length);
-        Assert.AreEqual(6, result.Etapes.Count);
+        Assert.AreEqual(6, result.Blocks.Count);
         AssertTime(result, 1500);
     }
 
@@ -146,8 +146,8 @@ public class DynamicParallelTests : BasePipeInit
         var result = await _CurrentService.RunAsync(builderWithoutScope.GetDetails(), 3);
         var resultScoped = await _CurrentService.RunAsync(builderWithScope.GetDetails(), 3);
 
-        Assert.AreEqual(11, result.Etapes.Count);
-        Assert.AreEqual(8, resultScoped.Etapes.Count);
+        Assert.AreEqual(11, result.Blocks.Count);
+        Assert.AreEqual(8, resultScoped.Blocks.Count);
         AssertTime(result, 1500);
     }
 }

@@ -47,9 +47,9 @@ public class PipeProgressionManagerTests
         Assert.AreEqual("", pipeProgressionEventReceived!.ElementId);
         Assert.AreEqual("", pipeProgressionEventReceived.ElementLibelle);
         Assert.AreEqual(2L, pipeProgressionEventReceived.Fait);
-        Assert.AreEqual(5L, pipeProgressionEventReceived.Total);
-        Assert.AreEqual(1L, pipeProgressionEventReceived.LastBlockProgressionEvent.Fait);
-        Assert.AreEqual(10L, pipeProgressionEventReceived.LastBlockProgressionEvent.Total);
+        Assert.AreEqual(5L, pipeProgressionEventReceived.AFaire);
+        Assert.AreEqual(1L, pipeProgressionEventReceived.DernierBlockProgressionEvent.Fait);
+        Assert.AreEqual(10L, pipeProgressionEventReceived.DernierBlockProgressionEvent.AFaire);
     }
 
     [TestMethod]
@@ -65,7 +65,7 @@ public class PipeProgressionManagerTests
         Assert.IsNotNull(received);
         Assert.IsInstanceOfType(received, typeof(PipeProgressionEvent));
         Assert.AreEqual(3L, received!.Fait);
-        Assert.AreEqual(10L, received.Total);
+        Assert.AreEqual(10L, received.AFaire);
     }
 
     [TestMethod]

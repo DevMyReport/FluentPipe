@@ -11,17 +11,37 @@ namespace FluentPipe.Tests.Runners;
 
 [TestClass]
 public class PipeRunnerCompletTests : BasePipeInit
-{
-    private IPipeRunner<PipeErreurManager, PipeEtatManager, EnumEtapeEtat, EnumEtapeDeclancheur, PipeProgressionManager>
-        CurrentService =>
-        (IPipeRunner<PipeErreurManager, PipeEtatManager, EnumEtapeEtat, EnumEtapeDeclancheur, PipeProgressionManager>)
-        GetContainer()
-            .GetRequiredService<IPipeRunner>();
+{    
+    private IPipeRunner<PipeErreurManager, PipeEtatManager, EnumEtapeEtat, EnumEtapeDeclancheur, PipeProgressionManager> _pipeRunner ;
+    
+    [ClassInitialize]
+    public static void MyClassInitialize(TestContext testContext)
+    {
+    }
+
+    [TestInitialize]
+    public void MyTestInitialize()
+    {
+        _pipeRunner = GetRequiredServicePipeRunner();
+    }
+
+    [TestCleanup]
+    public void MyTestCleanup()
+    {
+        _pipeRunner = null;
+    }
+    
+    private IPipeRunner<PipeErreurManager, PipeEtatManager, EnumEtapeEtat, EnumEtapeDeclancheur, PipeProgressionManager> GetRequiredServicePipeRunner()
+    {
+        return (IPipeRunner<PipeErreurManager, PipeEtatManager, EnumEtapeEtat, EnumEtapeDeclancheur, PipeProgressionManager>)
+            GetContainer()
+                .GetRequiredService<IPipeRunner>();
+    }
 
     [TestMethod]
     public void Default_Service_Is_PipeRunnerComplet()
     {
-        Assert.IsInstanceOfType(CurrentService, typeof(PipeRunnerComplet));
+        Assert.IsInstanceOfType(GetRequiredServicePipeRunner, typeof(PipeRunnerComplet));
     }
 
     [TestMethod]
@@ -33,31 +53,40 @@ public class PipeRunnerCompletTests : BasePipeInit
 
         var plan = builder.GetDetails();
 
-        var progressEvent = new List<ProgressionEvent>();
-        CurrentService.ProgressionManager.BlockProgressionChanged += (s, e) => { progressEvent.Add(e); };
+        var blockProgressEvent = new List<ProgressionEvent>();
+        _pipeRunner.ProgressionManager.BlockProgressionChanged += (s, e) => { blockProgressEvent.Add(e); };
         var pipeProgressEvent = new List<PipeProgressionEvent>();
-        CurrentService.ProgressionManager.PipeProgressionChanged += (s, e) => { pipeProgressEvent.Add(e); };
+        _pipeRunner.ProgressionManager.PipeProgressionChanged += (s, e) => { pipeProgressEvent.Add(e); };
 
-        var result = await CurrentService.RunAsync(plan, "1234");
+        var result = await _pipeRunner.RunAsync(plan, "1234");
 
         Assert.AreEqual(4321, result.Sortie);
-        CollectionAssert.AreEqual(new[] {0L, 1L, 2L}, pipeProgressEvent.Select(c => c.Fait).ToList());
+        CollectionAssert.AreEqual(new[] {1L, 2L, 3L, 4L}, blockProgressEvent.Select(c => c.Fait).ToList());
+        // Un événement de progression par block traité au niveau du Pipe
+        CollectionAssert.AreEqual(new[] {0L, 1L, 2L}, pipeProgressEvent.Where(e=>e.DernierBlockProgressionEvent is null).Select(c => c.Fait).ToList());
     }
 
     [TestMethod]
     public async Task ExplainAsync_Notifies_Progression()
     {
+        var pipeRunner = GetRequiredServicePipeRunner();
+        
         var builder = PipeBuilderFactory.Creer<string>()
             .Next<ReverseBlock, string>()
             .Next<ToIntBlock, int>();
 
         var plan = builder.GetDetails();
-        var progress = new TestProgressManager();
 
-        var result = await CurrentService.ExplainAsync(plan);
+        var pipeProgressEvent = new List<PipeProgressionEvent>();
+        _pipeRunner.ProgressionManager.PipeProgressionChanged += (s, e) => { pipeProgressEvent.Add(e); };
+        
+        var result = await _pipeRunner.ExplainAsync(plan);
 
-        Assert.AreEqual(2, result.Etapes.Count);
-        CollectionAssert.AreEqual(new[] {0d, 100d}, progress.Calls.Select(c => c.Percentage).ToList());
+        Assert.AreEqual(2, result.Blocks.Count);
+        // pas de progression de block
+        Assert.AreEqual(2 , pipeProgressEvent.Count(e => e.DernierBlockProgressionEvent is not null));
+        // On ne doit avoir que 3 événements : debut de la progression à 0 puis +1 par block
+        CollectionAssert.AreEqual(new[] {0L, 1L, 2L}, pipeProgressEvent.Select(c => c.Fait).ToList());
     }
 
     private sealed class TestProgressManager : PipeProgressionManager

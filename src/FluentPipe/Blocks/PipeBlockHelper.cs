@@ -5,6 +5,10 @@ namespace FluentPipe.Blocks;
 
 public abstract class PipeBlockHelper<TIn, TOut>
 {
+    public virtual string Nom { get; } = nameof(PipeBlockBase<TIn, TOut>);
+
+    public Guid Identifiant { get; } = Guid.NewGuid();
+
     public virtual object ToTypedEnumerableConverter(IEnumerable<object?> value)
     {
         return value.Cast<TOut>();
@@ -26,23 +30,28 @@ public abstract class PipeBlockHelper<TIn, TOut>
 
     #region ExplainAsync
 
-    public virtual Task<IList<ProcessStep>> ExplainAsync(BlockInfo context, CancellationToken ct)
+    public virtual Task<IList<ProcessBlock>> ExplainAsync(BlockInfo context, CancellationToken ct)
     {
-        var step = FormatExplainEtape(context);
-        return Task.FromResult<IList<ProcessStep>>(new List<ProcessStep> { step });
+        var block = FormatExplainEtape(context);
+        return Task.FromResult<IList<ProcessBlock>>(new List<ProcessBlock> {block});
     }
 
-    protected virtual ProcessStep FormatExplainEtape(BlockInfo context)
+    protected virtual ProcessBlock FormatExplainEtape(BlockInfo context)
     {
-        return new ProcessStep(context);
+        return new ProcessBlock(context);
     }
 
     #endregion
-    
+
     public event EventHandler<ProgressionEvent>? ProgressChanged;
-    
+
     public void NotifierProgression(ProgressionEvent evt)
     {
         ProgressChanged?.Invoke(this, evt);
+    }
+
+    protected void NotifierProgression(long fait, long aFaire)
+    {
+        NotifierProgression(new ProgressionEvent(Identifiant.ToString(), Nom, fait, aFaire));
     }
 }

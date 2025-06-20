@@ -53,7 +53,7 @@ public sealed class PipeParallelBuilder<TEntree, TListeSortie, TElementSortie> :
         _pipes.AddRange(details.Blocks.Select(ie =>
             ie switch
             {
-                BlockInfo etape => new BlockInfo(etape.TypeDuBlock, etape.Option, runOption), // Permet d'intégrer le RunOption
+                BlockInfo blockInfo => new BlockInfo(blockInfo.TypeDuBlock, blockInfo.Option, runOption), // Permet d'intégrer le RunOption
                 _ => ie
             }
         ));
@@ -70,7 +70,7 @@ public sealed class PipeParallelBuilder<TEntree, TListeSortie, TElementSortie> :
             _pipes.AddRange(details.Blocks.Select(ie =>
                 ie switch
                 {
-                    BlockInfo etape => new BlockInfo(etape.TypeDuBlock, etape.Option, runOption), // Permet d'intégrer le RunOption
+                    BlockInfo blockInfo => new BlockInfo(blockInfo.TypeDuBlock, blockInfo.Option, runOption), // Permet d'intégrer le RunOption
                     _ => ie
                 }
             ));
@@ -90,8 +90,8 @@ public sealed class PipeParallelBuilder<TEntree, TListeSortie, TElementSortie> :
         where TBlock : IBuilderProcessBlock<TElementSortie, TOut>
     {
         var option = new RunOption(new RunMonoBlockParallelOption(maxParallelism));
-        var etape = new BlockInfo(ServiceRegistryHelper.GetServiceType<TBlock>(), RunOpt: option);
-        _pipes.Add(new DynamicBlockInfo(etape));
+        var blockInfo = new BlockInfo(ServiceRegistryHelper.GetServiceType<TBlock>(), RunOpt: option);
+        _pipes.Add(new DynamicBlockInfo(blockInfo));
         return Convert<TOut>();
     }
 
@@ -103,8 +103,8 @@ public sealed class PipeParallelBuilder<TEntree, TListeSortie, TElementSortie> :
         {
             UseSubscope = useScope
         };
-        var etape = new BlockInfo(ServiceRegistryHelper.GetServiceType<TBlock>(), option, RunOpt: runOption);
-        _pipes.Add(new DynamicBlockInfo(etape));
+        var blockInfo = new BlockInfo(ServiceRegistryHelper.GetServiceType<TBlock>(), option, RunOpt: runOption);
+        _pipes.Add(new DynamicBlockInfo(blockInfo));
         return Convert<TOut>();
     }
 }

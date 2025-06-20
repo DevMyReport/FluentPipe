@@ -6,7 +6,13 @@ public sealed class ReverseBlock : PipeBlockBase<string, string>
 {
     public override Task<ComputeResult<string>> ProcessAsync(string input, CancellationToken cancellationToken = default)
     {
-        var result = new string(input.Reverse().ToArray());
-        return ComputeResult.Success(result).ToTask();
+        string retour = "";
+        for (int i = input.Length -1 ; i >= 0; i--)
+        {
+            retour += input[i];
+            NotifierProgression(retour.Length,input.Length);
+        }
+        
+        return ComputeResult.Success(retour).ToTask();
     }
 }

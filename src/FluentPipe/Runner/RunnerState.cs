@@ -36,7 +36,7 @@ internal sealed record RunnerState(
     ///     Allow to add warning if detected
     /// </summary>
     /// <param name="result"></param>
-    public void SetStateWarning((ProcessStep, ComputeResult)[] result)
+    public void SetStateWarning((ProcessBlock, ComputeResult)[] result)
     {
         var warnings = result.Select(s => s.Item2).ToList();
         if (!warnings.Any()) return;
@@ -63,7 +63,7 @@ internal sealed record RunnerState(
     ///     Allow to cancel the Token if an error is detected
     /// </summary>
     /// <param name="result"></param>
-    public void SetStateOnError((ProcessStep, ComputeResult)[] result)
+    public void SetStateOnError((ProcessBlock, ComputeResult)[] result)
     {
         var errors = result.Select(s => s.Item2).Where(w => !w.IsSuccess).ToList();
         if (!errors.Any()) return;

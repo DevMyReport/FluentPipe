@@ -8,6 +8,10 @@ namespace FluentPipe.Blocks.Contracts;
 /// </summary>
 public interface IPipeProcessBlock : IProcessConverter, INotifierProgression
 {
+     string Nom { get; }
+     
+     Guid Identifiant { get; }
+     
     /// <summary>
     ///     Generic interface lancé par le runner
     /// </summary>
@@ -23,7 +27,7 @@ public interface IPipeProcessBlock : IProcessConverter, INotifierProgression
     /// <param name="context"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<IList<ProcessStep>> ExplainAsync(BlockInfo context, CancellationToken cancellationToken);
+    Task<IList<ProcessBlock>> ExplainAsync(BlockInfo context, CancellationToken cancellationToken);
 }
 
 public interface IBuilderProcessBlock : IProcessConverter

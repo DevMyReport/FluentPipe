@@ -28,7 +28,7 @@ public class SwitchTests : BasePipeInit
         var result = await _CurrentService.RunAsync(plan, 1234);
 
         Assert.AreEqual(761995, result.Sortie);
-        Assert.AreEqual(2, result.Etapes.Count);
+        Assert.AreEqual(2, result.Blocks.Count);
     }
 
     [TestMethod]
@@ -48,7 +48,7 @@ public class SwitchTests : BasePipeInit
         var result = await _CurrentService.RunAsync(plan, 1234);
 
         Assert.AreEqual(1, result.Sortie);
-        Assert.AreEqual(2, result.Etapes.Count);
+        Assert.AreEqual(2, result.Blocks.Count);
     }
 
     [TestMethod]
@@ -68,7 +68,7 @@ public class SwitchTests : BasePipeInit
         var result = await _CurrentService.RunAsync(plan, 1234);
 
         Assert.AreEqual(617, result.Sortie);
-        Assert.AreEqual(2, result.Etapes.Count);
+        Assert.AreEqual(2, result.Blocks.Count);
     }
 
     [TestMethod]
@@ -88,7 +88,7 @@ public class SwitchTests : BasePipeInit
         var result = await _CurrentService.RunAsync(plan, 1234);
 
         Assert.AreEqual(761995, result.Sortie);
-        Assert.AreEqual(2, result.Etapes.Count);
+        Assert.AreEqual(2, result.Blocks.Count);
     }
 
     [TestMethod]
@@ -109,7 +109,7 @@ public class SwitchTests : BasePipeInit
         var result = await _CurrentService.RunAsync(plan, 1234);
 
         Assert.AreEqual("761995", result.Sortie);
-        Assert.AreEqual(3, result.Etapes.Count);
+        Assert.AreEqual(3, result.Blocks.Count);
     }
 
     [TestMethod]
@@ -145,7 +145,7 @@ public class SwitchTests : BasePipeInit
         var result = await _CurrentService.RunAsync(plan, 1234);
 
         Assert.AreEqual(761996, result.Sortie);
-        Assert.AreEqual(2, result.Etapes.Count);
+        Assert.AreEqual(2, result.Blocks.Count);
     }
 
 
@@ -168,6 +168,6 @@ public class SwitchTests : BasePipeInit
         var result = await _CurrentService.RunAsync(plan, 1234);
 
         Assert.AreEqual(761995, result.Sortie);
-        Assert.AreEqual(2, result.Etapes.Count);
+        Assert.AreEqual(2, result.Blocks.Count);
     }
 }

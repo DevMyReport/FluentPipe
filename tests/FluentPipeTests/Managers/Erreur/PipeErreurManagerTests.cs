@@ -34,7 +34,7 @@ public class PipeErreurManagerTests : BasePipeInit
         Assert.AreEqual(typeof(PipeErreurManager), result.ErrorManager.GetType());
 
         Assert.AreEqual(4321, result.Sortie);
-        Assert.AreEqual(2, result.Etapes.Count);
+        Assert.AreEqual(2, result.Blocks.Count);
     }
 
     [TestMethod]
@@ -51,7 +51,7 @@ public class PipeErreurManagerTests : BasePipeInit
         Assert.AreEqual(typeof(PipeErreurManagerPersonalisedPourTests), result.ErrorManager.GetType());
 
         Assert.AreEqual(4321, result.Sortie);
-        Assert.AreEqual(2, result.Etapes.Count);
+        Assert.AreEqual(2, result.Blocks.Count);
     }
 
 
@@ -70,6 +70,6 @@ public class PipeErreurManagerTests : BasePipeInit
         Assert.AreEqual(typeof(PipeErreurManagerPersonalisedPourTests), result.ErrorManager.GetType());
 
         Assert.AreEqual(5, compute.TypedValue);
-        Assert.AreEqual(4, result.Etapes.Count);
+        Assert.AreEqual(4, result.Blocks.Count);
     }
 }

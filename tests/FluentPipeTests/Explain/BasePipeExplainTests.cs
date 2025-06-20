@@ -23,7 +23,7 @@ public sealed class PipeExplainTests : BasePipeInit
 
         var result = await _CurrentService.ExplainAsync(plan);
 
-        Assert.AreEqual(2, result.Etapes.Count);
+        Assert.AreEqual(2, result.Blocks.Count);
     }
 
     [TestMethod]
@@ -42,7 +42,7 @@ public sealed class PipeExplainTests : BasePipeInit
 
         var result = await _CurrentService.ExplainAsync(plan);
 
-        Assert.AreEqual(4, result.Etapes.Count);
+        Assert.AreEqual(4, result.Blocks.Count);
     }
 
     [TestMethod]
@@ -66,7 +66,7 @@ public sealed class PipeExplainTests : BasePipeInit
 
         var result = await _CurrentService.ExplainAsync(plan);
 
-        Assert.AreEqual(6, result.Etapes.Count);
+        Assert.AreEqual(6, result.Blocks.Count);
     }
 
     [TestMethod]
@@ -79,16 +79,16 @@ public sealed class PipeExplainTests : BasePipeInit
 
         Assert.IsNotNull(result);
 
-        Assert.AreEqual(4, result.Etapes.Count);
-        Assert.AreEqual(typeof(AddThreeBlock).FullName, result.Etapes[0].Key);
-        Assert.IsNotNull(result.Etapes[0].Description);
-        Assert.AreEqual(1, result.Etapes[0].Description!.Count);
-        Assert.AreEqual("3", result.Etapes[0].Description!["Increment"]);
+        Assert.AreEqual(4, result.Blocks.Count);
+        Assert.AreEqual(typeof(AddThreeBlock).FullName, result.Blocks[0].Key);
+        Assert.IsNotNull(result.Blocks[0].Description);
+        Assert.AreEqual(1, result.Blocks[0].Description!.Count);
+        Assert.AreEqual("3", result.Blocks[0].Description!["Increment"]);
 
-        Assert.AreEqual(typeof(AddOneBlock).FullName, result.Etapes[1].Key);
-        Assert.IsNull(result.Etapes[1].Description);
+        Assert.AreEqual(typeof(AddOneBlock).FullName, result.Blocks[1].Key);
+        Assert.IsNull(result.Blocks[1].Description);
 
-        Assert.AreEqual(typeof(AddOneBlock).FullName, result.Etapes[2].Key);
-        Assert.AreEqual(typeof(AddOneBlock).FullName, result.Etapes[3].Key);
+        Assert.AreEqual(typeof(AddOneBlock).FullName, result.Blocks[2].Key);
+        Assert.AreEqual(typeof(AddOneBlock).FullName, result.Blocks[3].Key);
     }
 }

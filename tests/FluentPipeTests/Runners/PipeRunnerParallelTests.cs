@@ -158,9 +158,9 @@ public class PipeRunnerParallelTests : BasePipeInit
         //start runner with expected input
         var result = await CurrentService.RunAsync(builder.GetDetails(), 100, cts.Token);
         Assert.IsTrue(result.ErrorManager.IsCancelled);
-        Assert.IsTrue(result.Etapes.Count <= 3);
+        Assert.IsTrue(result.Blocks.Count <= 3);
 
-        var temps = result.Etapes.Select(s => s.Duree.TotalMilliseconds).Sum();
+        var temps = result.Blocks.Select(s => s.Duree.TotalMilliseconds).Sum();
         Console.WriteLine($"Etapes Temps total:{temps} ms");
     }
 
@@ -192,8 +192,8 @@ public class PipeRunnerParallelTests : BasePipeInit
         var result2 = await CurrentService.RunAsync(builder2.GetDetails(), 20);
         sw2.Stop();
 
-        var temps1 = result1.Etapes.Select(s => s.Duree.TotalMilliseconds).Sum();
-        var temps2 = result2.Etapes.Select(s => s.Duree.TotalMilliseconds).Sum();
+        var temps1 = result1.Blocks.Select(s => s.Duree.TotalMilliseconds).Sum();
+        var temps2 = result2.Blocks.Select(s => s.Duree.TotalMilliseconds).Sum();
         Console.WriteLine($"Etapes Temps total:{sw1.ElapsedMilliseconds}/{temps1} ms ");
         Console.WriteLine($"Etapes Temps total:{sw2.ElapsedMilliseconds}/{temps2} ms");
 
@@ -297,7 +297,7 @@ public class PipeRunnerParallelTests : BasePipeInit
         var result = await CurrentService.RunAsync(builder.GetDetails(), 10);
         var list = result.Sortie.ToList();
 
-        Assert.AreEqual(1, result.Etapes.Count);
+        Assert.AreEqual(1, result.Blocks.Count);
         Assert.AreEqual(10, list.Count);
         AssertTime(result, 1500);
     }

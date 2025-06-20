@@ -24,12 +24,12 @@ public class DynamicTests : BasePipeInit
         var result1 = await _CurrentService.RunAsync(plan, 0);
 
         Assert.AreEqual(1, result1.Sortie);
-        Assert.AreEqual(3, result1.Etapes.Count);
+        Assert.AreEqual(3, result1.Blocks.Count);
 
         var result2 = await _CurrentService.RunAsync(plan, 1);
 
         Assert.AreEqual(3, result2.Sortie);
-        Assert.AreEqual(4, result2.Etapes.Count);
+        Assert.AreEqual(4, result2.Blocks.Count);
     }
 
     [TestMethod]
@@ -44,7 +44,7 @@ public class DynamicTests : BasePipeInit
 
         var result1 = await _CurrentService.ExplainAsync(plan);
 
-        Assert.AreEqual(4, result1.Etapes.Count);
+        Assert.AreEqual(4, result1.Blocks.Count);
     }
 
     [TestMethod]
@@ -59,11 +59,11 @@ public class DynamicTests : BasePipeInit
         var result1 = await _CurrentService.RunAsync(plan, 0);
 
         Assert.AreEqual("1", result1.Sortie);
-        Assert.AreEqual(2, result1.Etapes.Count);
+        Assert.AreEqual(2, result1.Blocks.Count);
 
         var result2 = await _CurrentService.RunAsync(plan, 1);
 
         Assert.AreEqual("3", result2.Sortie);
-        Assert.AreEqual(3, result2.Etapes.Count);
+        Assert.AreEqual(3, result2.Blocks.Count);
     }
 }

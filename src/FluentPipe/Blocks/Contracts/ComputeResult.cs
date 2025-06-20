@@ -13,10 +13,10 @@ public record ComputeResult
         Warnings = new List<object>();
     }
 
-    internal ComputeResult(bool isSuccess, object result, IReadOnlyList<ProcessStep> sousEtapes)
+    internal ComputeResult(bool isSuccess, object result, IReadOnlyList<ProcessBlock> sousBlocs)
      : this(isSuccess, result)
     {
-        SousEtapes = sousEtapes;
+        SousBlocs = sousBlocs;
     }
 
     public object? Error => IsSuccess ? null : _result;
@@ -25,7 +25,7 @@ public record ComputeResult
 
     public bool IsSuccess { get; }
 
-    public IReadOnlyList<ProcessStep> SousEtapes { get; } = new List<ProcessStep>();
+    public IReadOnlyList<ProcessBlock> SousBlocs { get; } = new List<ProcessBlock>();
 
     public List<object> Warnings { get; }
 
@@ -44,7 +44,7 @@ public record ComputeResult
         return new ComputeResult<T>(false, error);
     }
 
-    public static ComputeResult<T> Failure<T>(object error, IReadOnlyList<ProcessStep> etapes)
+    public static ComputeResult<T> Failure<T>(object error, IReadOnlyList<ProcessBlock> etapes)
     {
         return new ComputeResult<T>(false, error, etapes);
     }
@@ -54,7 +54,7 @@ public record ComputeResult
         return new ComputeResult<T>(true, value, warnings);
     }
 
-    public static ComputeResult<T> SuccessWithWarnings<T>(T value, IEnumerable<object> warnings, IReadOnlyList<ProcessStep> sousEtapes)
+    public static ComputeResult<T> SuccessWithWarnings<T>(T value, IEnumerable<object> warnings, IReadOnlyList<ProcessBlock> sousEtapes)
     {
         return new ComputeResult<T>(true, value, warnings, sousEtapes);
     }
@@ -63,28 +63,28 @@ public record ComputeResult
         where TErrorManager : IPipeErreurManager
     {
         if (sortie.ErrorManager.HasError)
-            return Failure<TSortie>(sortie.ErrorManager.GetErrorsObject(), sortie.Etapes);
+            return Failure<TSortie>(sortie.ErrorManager.GetErrorsObject(), sortie.Blocks);
 
-        return SuccessWithWarnings(sortie.Sortie, sortie.ErrorManager.GetWarningsObject(), sortie.Etapes);
+        return SuccessWithWarnings(sortie.Sortie, sortie.ErrorManager.GetWarningsObject(), sortie.Blocks);
     }
 }
 
 public sealed record ComputeResult<T> : ComputeResult
 {
     internal ComputeResult(bool isSuccess, object result)
-        : this(isSuccess, result, Enumerable.Empty<object>(), new List<ProcessStep>())
+        : this(isSuccess, result, Enumerable.Empty<object>(), new List<ProcessBlock>())
     { }
 
-    internal ComputeResult(bool isSuccess, object result, IReadOnlyList<ProcessStep> sousEtapes)
-        : this(isSuccess, result, Enumerable.Empty<object>(), sousEtapes)
+    internal ComputeResult(bool isSuccess, object result, IReadOnlyList<ProcessBlock> sousBlocs)
+        : this(isSuccess, result, Enumerable.Empty<object>(), sousBlocs)
     { }
 
     internal ComputeResult(bool isSuccess, object result, IEnumerable<object> warnings)
-        : this(isSuccess, result, warnings, new List<ProcessStep>())
+        : this(isSuccess, result, warnings, new List<ProcessBlock>())
     { }
 
-    internal ComputeResult(bool isSuccess, object result, IEnumerable<object> warnings, IReadOnlyList<ProcessStep> sousEtapes)
-        : base(isSuccess, result, sousEtapes)
+    internal ComputeResult(bool isSuccess, object result, IEnumerable<object> warnings, IReadOnlyList<ProcessBlock> sousBlocs)
+        : base(isSuccess, result, sousBlocs)
     {
         Warnings.AddRange(warnings);
     }

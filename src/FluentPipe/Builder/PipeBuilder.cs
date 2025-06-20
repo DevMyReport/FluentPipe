@@ -55,15 +55,15 @@ public class PipeBuilder<TEntree, TSortie> : IPipeBuilder<TEntree, TSortie>
         return new PipeBuilder<TEntree, TOut>(_pipes);
     }
 
-    #region Dynamic Etape
+    #region Dynamic Block
 
     public IPipeBuilder<TEntree, TOut> OneIn<TIn, TOut>(bool bindingIsEnable = true)
         where TIn : IBuilderProcessBlock<TSortie, TOut>
     {
         if (bindingIsEnable)
         {
-            var etape = new BlockInfo(ServiceRegistryHelper.GetServiceType<TIn>(), null, _parallelModeOption);
-            _pipes.Add(new DynamicBlockInfo(etape));
+            var block = new BlockInfo(ServiceRegistryHelper.GetServiceType<TIn>(), null, _parallelModeOption);
+            _pipes.Add(new DynamicBlockInfo(block));
         }
 
         return Convert<TOut>();
@@ -76,8 +76,8 @@ public class PipeBuilder<TEntree, TSortie> : IPipeBuilder<TEntree, TSortie>
         var isEnabled = bindingIsEnable?.Invoke(option) ?? true;
         if (isEnabled)
         {
-            var etape = new BlockInfo(ServiceRegistryHelper.GetServiceType<TIn>(), option, _parallelModeOption);
-            _pipes.Add(new DynamicBlockInfo(etape));
+            var blockInfo = new BlockInfo(ServiceRegistryHelper.GetServiceType<TIn>(), option, _parallelModeOption);
+            _pipes.Add(new DynamicBlockInfo(blockInfo));
         }
 
         return Convert<TOut>();
