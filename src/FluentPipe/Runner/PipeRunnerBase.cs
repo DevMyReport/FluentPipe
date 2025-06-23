@@ -32,7 +32,7 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public async Task<SortieRunner<TOut, TErreurManager>> RunAsync<TIn, TOut>(
+    public virtual async Task<SortieRunner<TOut, TErreurManager>> RunAsync<TIn, TOut>(
         PipeBuilderDetails<TIn, TOut> detail,
         [DisallowNull] TIn input,
         CancellationToken cancellationToken = default)
@@ -323,8 +323,8 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
     /// Progression vie ProgressionManager
     /// </summary>
     /// <param name="blockInfo"></param>
-    /// <param name="svc"></param>
-    protected virtual void OnInstancierBlock(BlockInfo blockInfo, IPipeProcessBlock svc)
+    /// <param name="block"></param>
+    protected virtual void OnInstancierBlock(BlockInfo blockInfo, IPipeProcessBlock block)
     {
     }
     
@@ -333,14 +333,14 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
     /// Progression vie ProgressionManager
     /// </summary>
     /// <param name="blockInfo"></param>
-    /// <param name="svc"></param>
-    protected virtual void OnTerminerBlock(BlockInfo blockInfo, IPipeProcessBlock svc)
+    /// <param name="block"></param>
+    protected virtual void OnTerminerBlock(BlockInfo blockInfo, IPipeProcessBlock block)
     {
     }
 
     #region ExplainAsync
 
-    public async Task<SortieRunner<TOut, TErreurManager>> ExplainAsync<TIn, TOut>(PipeBuilderDetails<TIn, TOut> detail,
+    public virtual async Task<SortieRunner<TOut, TErreurManager>> ExplainAsync<TIn, TOut>(PipeBuilderDetails<TIn, TOut> detail,
         CancellationToken cancellationToken = default)
     {
         var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -393,9 +393,9 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
 
     private async Task<IList<ProcessBlock>> ExplainStepAsync(BlockInfo blockInfo, RunnerState state)
     {
-        var svc = InstancierBlock(blockInfo, state);
-        var result = await svc.ExplainAsync(blockInfo, state.CancellationTokenSource.Token);
-        OnTerminerBlock(blockInfo, svc);
+        var block = InstancierBlock(blockInfo, state);
+        var result = await block.ExplainAsync(blockInfo, state.CancellationTokenSource.Token);
+        OnTerminerBlock(blockInfo, block);
         return result;
     }
 
@@ -423,7 +423,7 @@ public abstract class PipeRunnerBase<TErreurManager, TEtatManager, TEtat, TDecla
 
     public TProgressionManager ProgressionManager { get; } = new();
 
-    public async Task<SortieRunner<TOut, TErreurManager>> RunAsync<TIn, TOut>(
+    public override async Task<SortieRunner<TOut, TErreurManager>> RunAsync<TIn, TOut>(
         PipeBuilderDetails<TIn, TOut> detail,
         [DisallowNull] TIn input,
         CancellationToken cancellationToken = default)
@@ -439,7 +439,7 @@ public abstract class PipeRunnerBase<TErreurManager, TEtatManager, TEtat, TDecla
         }
     }
 
-    public async Task<SortieRunner<TOut, TErreurManager>> ExplainAsync<TIn, TOut>(
+    public override async Task<SortieRunner<TOut, TErreurManager>> ExplainAsync<TIn, TOut>(
         PipeBuilderDetails<TIn, TOut> detail,
         CancellationToken cancellationToken = default)
     {
@@ -457,23 +457,22 @@ public abstract class PipeRunnerBase<TErreurManager, TEtatManager, TEtat, TDecla
 
     protected override void InternalAnnuler(BlockInfo blockInfo)
     {
-        EtatManager.DeclancherEtapeAnnuled(blockInfo.TypeDuBlock.Name);
         base.InternalAnnuler(blockInfo);
     }
 
-    protected override void OnInstancierBlock(BlockInfo blockInfo, IPipeProcessBlock svc)
+    protected override void OnInstancierBlock(BlockInfo blockInfo, IPipeProcessBlock block)
     {
-        svc.ProgressChanged += ProgressionManager.OnProgressionBlock;
-        EtatManager.AjouterMachineAEtat(blockInfo.TypeDuBlock.Name);
-        EtatManager.DeclancherEtapeDemarred(blockInfo.TypeDuBlock.Name);
-        base.OnInstancierBlock(blockInfo, svc);
+        block.ProgressChanged += ProgressionManager.OnProgressionBlock;
+        EtatManager.InitialiserMachineAEtat(block.Identifiant.ToString());
+        EtatManager.DeclancherBlockDemarred(block.Identifiant.ToString());
+        base.OnInstancierBlock(blockInfo, block);
     }
 
-    protected override void OnTerminerBlock(BlockInfo blockInfo, IPipeProcessBlock svc)
+    protected override void OnTerminerBlock(BlockInfo blockInfo, IPipeProcessBlock block)
     {
-        EtatManager.DeclancherEtapeTermined(blockInfo.TypeDuBlock.Name);
+        EtatManager.DeclancherBlockTermined(block.Identifiant.ToString());
         ProgressionManager.NotifierBlockTraited(blockInfo);
-        base.OnTerminerBlock(blockInfo, svc);
-        svc.ProgressChanged -= ProgressionManager.OnProgressionBlock;
+        base.OnTerminerBlock(blockInfo, block);
+        block.ProgressChanged -= ProgressionManager.OnProgressionBlock;
     }
 }

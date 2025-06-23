@@ -67,13 +67,13 @@ public class PipeEtatManager : PipeEtatManagerBase<EnumEtapeEtat, EnumEtapeDecla
         }
     }
 
-    protected override EnumEtapeDeclancheur DeclancheurEtapeDemarredParDefaut => EnumEtapeDeclancheur.Demarrage;
+    protected override EnumEtapeDeclancheur DeclancheurBlockDemarredParDefaut => EnumEtapeDeclancheur.Demarrage;
     
-    protected override EnumEtapeDeclancheur DeclancheurEtapeSuccesParDefaut  => EnumEtapeDeclancheur.Succes;
+    protected override EnumEtapeDeclancheur DeclancheurBlockSuccesParDefaut  => EnumEtapeDeclancheur.Succes;
     
-    protected override EnumEtapeDeclancheur DeclancheurEtapeEnEchecParDefaut => EnumEtapeDeclancheur.Erreur;
+    protected override EnumEtapeDeclancheur DeclancheurBlockEnEchecParDefaut => EnumEtapeDeclancheur.Erreur;
     
-    protected override EnumEtapeDeclancheur DeclancheurEtapeAnnuledParDefaut => EnumEtapeDeclancheur.Annulation;
+    protected override EnumEtapeDeclancheur DeclancheurBlockAnnuledParDefaut => EnumEtapeDeclancheur.Annulation;
 
     protected override StateMachine<EnumEtapeEtat, EnumEtapeDeclancheur> CreerMachineAEtat(string etapeId)
     {

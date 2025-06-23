@@ -32,7 +32,7 @@ public class PipeEtatManagerTests
         _manager.Declancher(etape, EnumEtapeDeclancheur.Demarrage);
         _manager.Declancher(etape, EnumEtapeDeclancheur.Succes);
 
-        var etat = _manager.GetEtapeEtat(etape);
+        var etat = _manager.GetBlockEtat(etape);
         Assert.AreEqual(EnumEtapeEtat.Succes, etat);
     }
     
@@ -60,11 +60,11 @@ public class PipeEtatManagerTests
         _manager.AjouterMachineAEtat(etape);
         
         _manager.Declancher(etape, EnumEtapeDeclancheur.Demarrage);
-        var etat = _manager.GetEtapeEtat(etape);
+        var etat = _manager.GetBlockEtat(etape);
         Assert.AreEqual(EnumEtapeEtat.EnCours, etat);
         
         _manager.Declancher(etape, EnumEtapeDeclancheur.Erreur);
-        etat = _manager.GetEtapeEtat(etape);
+        etat = _manager.GetBlockEtat(etape);
         Assert.AreEqual(EnumEtapeEtat.Echec, etat);
     }
 
@@ -76,7 +76,7 @@ public class PipeEtatManagerTests
         _manager.Declancher(etape, EnumEtapeDeclancheur.Demarrage);
         _manager.Declancher(etape, EnumEtapeDeclancheur.Annulation);
 
-        var etat = _manager.GetEtapeEtat(etape);
+        var etat = _manager.GetBlockEtat(etape);
         Assert.AreEqual(EnumEtapeEtat.Annuled, etat);
     }
 
@@ -92,11 +92,11 @@ public class PipeEtatManagerTests
         
         _manager.Declancher(enfant1, EnumEtapeDeclancheur.Demarrage);
         _manager.Declancher(enfant1, EnumEtapeDeclancheur.Erreur);
-        var etat = _manager.GetEtapeEtat(enfant1);
+        var etat = _manager.GetBlockEtat(enfant1);
         Assert.AreEqual(EnumEtapeEtat.Echec, etat);
         _manager.Declancher(enfant2, EnumEtapeDeclancheur.Demarrage);
         _manager.Declancher(enfant2, EnumEtapeDeclancheur.Succes);
-        etat = _manager.GetEtapeEtat(enfant2);
+        etat = _manager.GetBlockEtat(enfant2);
         Assert.AreEqual(EnumEtapeEtat.Succes, etat);
 
         var etatAgreged = _manager.AgregerEtapesEtats(new[] { enfant1, enfant2 });

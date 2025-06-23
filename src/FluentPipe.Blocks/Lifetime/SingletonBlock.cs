@@ -4,13 +4,11 @@ namespace FluentPipe.Blocks.Lifetime;
 
 public sealed class SingletonBlock : PipeBlockBase<LifeTimeResult, LifeTimeResult>
 {
-    private readonly Guid _guid;
     private int _value;
     private readonly object _valueLock = new();
 
     public SingletonBlock()
     {
-        _guid = Guid.NewGuid();
         _value = 0;
     }
 
@@ -19,7 +17,7 @@ public sealed class SingletonBlock : PipeBlockBase<LifeTimeResult, LifeTimeResul
         lock (_valueLock)
         {
             _value += input.Value;
-            var result = new LifeTimeResult(_guid, _value);
+            var result = new LifeTimeResult(Identifiant, _value);
             return ComputeResult.Success(result).ToTask();
         }
     }

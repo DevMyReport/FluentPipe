@@ -12,7 +12,7 @@ namespace FluentPipe.Tests.Runners;
 [TestClass]
 public class PipeRunnerCompletTests : BasePipeInit
 {    
-    private IPipeRunner<PipeErreurManager, PipeEtatManager, EnumEtapeEtat, EnumEtapeDeclancheur, PipeProgressionManager> _pipeRunner ;
+    private PipeRunnerComplet _pipeRunner ;
     
     [ClassInitialize]
     public static void MyClassInitialize(TestContext testContext)
@@ -31,9 +31,9 @@ public class PipeRunnerCompletTests : BasePipeInit
         _pipeRunner = null;
     }
     
-    private IPipeRunner<PipeErreurManager, PipeEtatManager, EnumEtapeEtat, EnumEtapeDeclancheur, PipeProgressionManager> GetRequiredServicePipeRunner()
+    private PipeRunnerComplet GetRequiredServicePipeRunner()
     {
-        return (IPipeRunner<PipeErreurManager, PipeEtatManager, EnumEtapeEtat, EnumEtapeDeclancheur, PipeProgressionManager>)
+        return (PipeRunnerComplet)
             GetContainer()
                 .GetRequiredService<IPipeRunner>();
     }
@@ -41,7 +41,8 @@ public class PipeRunnerCompletTests : BasePipeInit
     [TestMethod]
     public void Default_Service_Is_PipeRunnerComplet()
     {
-        Assert.IsInstanceOfType(GetRequiredServicePipeRunner, typeof(PipeRunnerComplet));
+        Assert.IsInstanceOfType(GetContainer()
+            .GetRequiredService<IPipeRunner>(), typeof(PipeRunnerComplet));
     }
 
     [TestMethod]
@@ -84,7 +85,7 @@ public class PipeRunnerCompletTests : BasePipeInit
 
         Assert.AreEqual(2, result.Blocks.Count);
         // pas de progression de block
-        Assert.AreEqual(2 , pipeProgressEvent.Count(e => e.DernierBlockProgressionEvent is not null));
+        Assert.AreEqual(0 , pipeProgressEvent.Count(e => e.DernierBlockProgressionEvent is not null));
         // On ne doit avoir que 3 événements : debut de la progression à 0 puis +1 par block
         CollectionAssert.AreEqual(new[] {0L, 1L, 2L}, pipeProgressEvent.Select(c => c.Fait).ToList());
     }

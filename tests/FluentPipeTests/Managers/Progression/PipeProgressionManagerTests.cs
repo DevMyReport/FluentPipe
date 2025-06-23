@@ -56,7 +56,7 @@ public class PipeProgressionManagerTests
     public void NotifierProgressionPipe_RaisesEvent_And_UpdatesValues()
     {
         ProgressionEvent? received = null;
-        _manager.BlockProgressionChanged += (_, e) => received = e;
+        _manager.PipeProgressionChanged += (_, e) => received = e;
 
         _manager.NotifierProgressionPipe(3, 10);
 

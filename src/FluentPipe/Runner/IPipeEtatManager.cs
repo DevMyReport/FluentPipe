@@ -1,6 +1,7 @@
 #nullable enable
 
 using System.Collections.Concurrent;
+using System.ComponentModel.Design;
 using Stateless;
 
 namespace FluentPipe.Runner;
@@ -8,28 +9,30 @@ namespace FluentPipe.Runner;
 public interface IPipeEtatManager<TEtat, TDeclancheur>
 {
     void AjouterMachineAEtat(string blockId);
+    
+    void InitialiserMachineAEtat(string blockId);
     /// <summary>
     /// Obtenir l'état d'une étape
     /// </summary>
-    TEtat GetEtapeEtat(string etapeId);
+    TEtat GetBlockEtat(string blockId);
     
-    bool Declancher(string etapeId, TDeclancheur declancheur);
+    bool Declancher(string blockId, TDeclancheur declancheur);
 
-    void DeclancherEtapeDemarred(string etapeId);
+    void DeclancherBlockDemarred(string blockId);
     
-    void DeclancherEtapeTermined(string etapeId);
+    void DeclancherBlockTermined(string blockId);
     
-    void DeclancherEtapeAnnuled(string etapeId);
+    void DeclancherBlockAnnuled(string blockId);
     
-    void DeclancherEtapeEnEchec(string etapeId);
+    void DeclancherBlockEnEchec(string blockId);
 }
 
 public abstract class PipeEtatManagerBase<TEtat, TDeclancheur> : IPipeEtatManager<TEtat, TDeclancheur>
 {
-    protected abstract TDeclancheur? DeclancheurEtapeDemarredParDefaut { get; }
-    protected abstract TDeclancheur? DeclancheurEtapeSuccesParDefaut { get; }
-    protected abstract TDeclancheur? DeclancheurEtapeEnEchecParDefaut { get; }
-    protected abstract TDeclancheur? DeclancheurEtapeAnnuledParDefaut { get; }
+    protected abstract TDeclancheur? DeclancheurBlockDemarredParDefaut { get; }
+    protected abstract TDeclancheur? DeclancheurBlockSuccesParDefaut { get; }
+    protected abstract TDeclancheur? DeclancheurBlockEnEchecParDefaut { get; }
+    protected abstract TDeclancheur? DeclancheurBlockAnnuledParDefaut { get; }
 
     /// <summary>
     /// L'ensemble des Machines à état du Pipe(runner)
@@ -42,15 +45,28 @@ public abstract class PipeEtatManagerBase<TEtat, TDeclancheur> : IPipeEtatManage
         if (!_machines.TryAdd(blockId, machine))
             throw new InvalidOperationException($"Machine '{blockId}' is existe déjà");
     }
-    
+
+    /// <summary>
+    /// Créer ou recréer la machine a état de l'étape
+    /// </summary>
+    /// <param name="blockId"></param>
+    public void InitialiserMachineAEtat(string blockId)
+    {
+        if (_machines.ContainsKey(blockId))
+            if(!_machines.TryRemove(blockId, out _))
+                throw new InvalidOperationException($"Machine '{blockId}' n'a pu être réinitialisée");
+        
+        AjouterMachineAEtat(blockId);
+    }
+
     public StateMachine<TEtat, TDeclancheur> GetMachineByEtapeId(string etapeId)
     {
         return _machines[etapeId];
     }
 
-    public TEtat GetEtapeEtat(string etapeId)
+    public TEtat GetBlockEtat(string blockId)
     {
-        var machine = GetMachineByEtapeId(etapeId);
+        var machine = GetMachineByEtapeId(blockId);
         return machine.State;
     }
     
@@ -63,9 +79,9 @@ public abstract class PipeEtatManagerBase<TEtat, TDeclancheur> : IPipeEtatManage
         throw new KeyNotFoundException($"Aucune machine à état trouvée pour l'étape {etapeId}");
     }
     
-    public bool Declancher(string etapeId, TDeclancheur declancheur)
+    public bool Declancher(string blockId, TDeclancheur declancheur)
     {
-        var machine = GetMachineByEtapeId(etapeId);
+        var machine = GetMachineByEtapeId(blockId);
         
         if (!machine.CanFire(declancheur)) 
             return false;
@@ -74,24 +90,24 @@ public abstract class PipeEtatManagerBase<TEtat, TDeclancheur> : IPipeEtatManage
         return true;
     }
 
-    public void DeclancherEtapeDemarred(string etapeId)
+    public void DeclancherBlockDemarred(string blockId)
     {
-        Declancher(etapeId, DeclancheurEtapeDemarredParDefaut);
+        Declancher(blockId, DeclancheurBlockDemarredParDefaut);
     }
 
-    public void DeclancherEtapeTermined(string etapeId)
+    public void DeclancherBlockTermined(string blockId)
     {
-        Declancher(etapeId, DeclancheurEtapeSuccesParDefaut);
+        Declancher(blockId, DeclancheurBlockSuccesParDefaut);
     }
 
-    public void DeclancherEtapeAnnuled(string etapeId)
+    public void DeclancherBlockAnnuled(string blockId)
     {
-        Declancher(etapeId, DeclancheurEtapeAnnuledParDefaut);
+        Declancher(blockId, DeclancheurBlockAnnuledParDefaut);
     }
 
-    public void DeclancherEtapeEnEchec(string etapeId)
+    public void DeclancherBlockEnEchec(string blockId)
     {
-        Declancher(etapeId, DeclancheurEtapeEnEchecParDefaut);
+        Declancher(blockId, DeclancheurBlockEnEchecParDefaut);
     }
 
     protected abstract StateMachine<TEtat, TDeclancheur> CreerMachineAEtat(string etapeId);
