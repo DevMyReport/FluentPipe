@@ -25,8 +25,7 @@ public abstract class PipeBlockBase<TIn, TOut> : PipeBlockHelper<TIn, TOut>, IPi
     /// <param name="context"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public virtual async Task<ComputeResult> ComputeAsync(object input, BlockInfo context,
-        CancellationToken cancellationToken = default)
+    public virtual async Task<ComputeResult> ComputeAsync(object input, BlockInfo context, CancellationToken cancellationToken = default)
     {
         return await ProcessAsync(Converter(input), cancellationToken);
     }

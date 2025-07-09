@@ -20,7 +20,7 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
     where TErreurManager : IPipeErreurManager, new()
 {
     private TErreurManager _ErreurManager { get; } = new();
-
+    
     /// <summary>
     ///     Lance l'exécution des étapes
     /// </summary>
@@ -43,9 +43,8 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
         var stopwatch = Stopwatch.StartNew();
         var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         using var state = new RunnerState(false, provider, _ErreurManager, cts);
-
         var (listEtapes, data) = await RunInMixed(detail.Blocks, input, state);
-
+        
         if (cancellationToken.IsCancellationRequested)
             InternalAnnuler();
 
@@ -70,7 +69,7 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
         var data = input;
         var listeBlocks = new List<ProcessBlock>();
 
-        foreach (var stepGen in blocks)
+        foreach (var blockInfo in blocks)
         {
             if (state.CancellationTokenSource.IsCancellationRequested)
                 break;
@@ -78,7 +77,7 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
             if (data == null)
                 break;
 
-            switch (stepGen)
+            switch (blockInfo)
             {
                 case ScopeBlockInfo:
                     state.ResetScope();
@@ -99,44 +98,44 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
                     listeBlocks.AddRange(listSteps);
                     break;
 
-                case DynamicBlockInfo dynamicStep:
+                case DynamicBlockInfo dynamicBlock:
                     //un block qui rajoute des étapes en fonction de la valeur
-                    var (extraSteps, _) = GetDynamicEtapes(dynamicStep.BlockInfo, data, state);
+                    var (extraSteps, _) = GetDynamicEtapes(dynamicBlock.BlockInfo, data, state);
                     var (s, o) = await RunInMixed(extraSteps, data, state);
 
                     listeBlocks.AddRange(s);
                     data = o;
                     break;
 
-                case ParallelBlockInfo stepMulti:
+                case ParallelBlockInfo blockMulti:
                 {
-                    //plusieurs connecteur a lancé en parallele
-                    var subList = stepMulti.Etapes;
+                    //plusieurs connecteur a lancer en parallele
+                    var subList = blockMulti.Etapes;
                     (var listStepsMulti, data) = await RunInParallel(subList, data, state);
                     listeBlocks.AddRange(listStepsMulti);
                     break;
                 }
 
-                case BlockInfo stepMono when stepMono.RunOpt.MonoBlockParallelOption is { } optionMono:
+                case BlockInfo blockMono when blockMono.RunOpt.MonoBlockParallelOption is { } optionMono:
                 {
-                    //il faut lancer le meme connecteur autant de foi qu'il y'a de valeur dans la list
+                    //il faut lancer le meme connecteur autant de fois qu'il y a de valeur dans la list
                     var values = (data as IEnumerable)?.Cast<object>();
                     if (values == null)
-                        throw new InvalidCastException($"Failed to cast Etape {stepMono.TypeDuBlock.Name}");
+                        throw new InvalidCastException($"Failed to cast Etape {blockMono.TypeDuBlock.Name}");
 
                     (var listStepsMono, data) =
-                        await RunInParallel(stepMono, values, optionMono.MaxDegreeOfParallelism, state);
+                        await RunInParallel(blockMono, values, optionMono.MaxDegreeOfParallelism, state);
 
                     listeBlocks.AddRange(listStepsMono);
                     break;
                 }
 
-                case BlockInfo stepMono:
-                    var (fini, step, _) = await ComputeStepAsync(stepMono, data, state);
-                    data = step.Value;
-                    listeBlocks.AddRange(GetAllProcessSteps(fini, step));
-                    state.SetStateOnError(step);
-                    state.SetStateWarning(step);
+                case BlockInfo blockMono:
+                    var (fini, blockResult, _) = await ComputeBlockAsync(blockMono, data, state);
+                    data = blockResult.Value;
+                    listeBlocks.AddRange(GetAllProcessSteps(fini, blockResult));
+                    state.SetStateOnError(blockResult);
+                    state.SetStateWarning(blockResult);
                     break;
             }
         }
@@ -161,9 +160,9 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
         //TakeWhile permet d'arreter le parallel sans généré de cancellationException
         await Parallel.ForEachAsync(steps.TakeWhile(_ => !state.CancellationTokenSource.IsCancellationRequested),
             option,
-            async (step, _) =>
+            async (blockInfo, _) =>
             {
-                var (e, c, f) = await ComputeStepAsync(step, input, state);
+                var (e, c, f) = await ComputeBlockAsync(blockInfo, input, state);
                 converter ??= f;
                 values.Add((e, c));
             });
@@ -186,10 +185,10 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
     /// </summary>
     /// <param name="inputs"></param>
     /// <param name="maxDegreeOfParallelism"></param>
-    /// <param name="step"></param>
+    /// <param name="blockInfo"></param>
     /// <param name="state"></param>
     /// <returns></returns>
-    private async Task<(IEnumerable<ProcessBlock>, object?)> RunInParallel(BlockInfo step,
+    private async Task<(IEnumerable<ProcessBlock>, object?)> RunInParallel(BlockInfo blockInfo,
         IEnumerable<object> inputs, int maxDegreeOfParallelism, RunnerState state)
     {
         var values = new ConcurrentBag<(ProcessBlock, ComputeResult)>();
@@ -206,7 +205,7 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
             option,
             async (input, _) =>
             {
-                var (e, c, f) = await ComputeStepAsync(step, input, state);
+                var (e, c, f) = await ComputeBlockAsync(blockInfo, input, state);
                 svc ??= f;
                 values.Add((e, c));
             });
@@ -229,10 +228,10 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
     /// </summary>
     /// <param name="inputs"></param>
     /// <param name="maxDegreeOfParallelism"></param>
-    /// <param name="step"></param>
+    /// <param name="blockInfo"></param>
     /// <param name="state"></param>
     /// <returns></returns>
-    private async Task<(List<ProcessBlock>, object?)> RunInDynamicParallel(DynamicBlockInfo step,
+    private async Task<(List<ProcessBlock>, object?)> RunInDynamicParallel(DynamicBlockInfo blockInfo,
         IEnumerable<object> inputs, int maxDegreeOfParallelism, RunnerState state)
     {
         var values = new ConcurrentBag<(List<ProcessBlock> etapes, object? data)>();
@@ -250,9 +249,9 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
             async (input, _) =>
             {
                 IServiceScope? subScop = null;
-                if (step.BlockInfo.RunOpt.UseSubscope)
+                if (blockInfo.BlockInfo.RunOpt.UseSubscope)
                     subScop = state.Provider.CreateScope();
-                var (listEtapes, f) = GetDynamicEtapes(step.BlockInfo, input, state, subScop);
+                var (listEtapes, f) = GetDynamicEtapes(blockInfo.BlockInfo, input, state, subScop);
                 var (etapesTermine, o) = await RunInMixed(listEtapes, input, state);
                 svc ??= f;
                 values.Add((etapesTermine, o));
@@ -286,7 +285,7 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
     /// <param name="input"></param>
     /// <param name="state"></param>
     /// <returns></returns>
-    private async Task<(ProcessBlock, ComputeResult, IPipeProcessBlock)> ComputeStepAsync(BlockInfo blockInfo,
+    private async Task<(ProcessBlock, ComputeResult, IPipeProcessBlock)> ComputeBlockAsync(BlockInfo blockInfo,
         object input, RunnerState state)
     {
         var sw = Stopwatch.StartNew();
@@ -302,12 +301,12 @@ public abstract class PipeRunnerBase<TErreurManager>(IServiceProvider provider) 
 
     #region DynamicStep
 
-    private static (IReadOnlyList<IBlockInfo>, IBuilderProcessBlock) GetDynamicEtapes(BlockInfo step, object input,
+    private static (IReadOnlyList<IBlockInfo>, IBuilderProcessBlock) GetDynamicEtapes(BlockInfo blockInfo, object input,
         RunnerState state, IServiceScope? scope = null)
     {
         var svc = (scope ?? state.Scope).ServiceProvider
-            .GetRequiredKeyedService<IBuilderProcessBlock>(step.TypeDuBlock);
-        return (svc.GetBuilder(input, step, state.IsExplain), svc);
+            .GetRequiredKeyedService<IBuilderProcessBlock>(blockInfo.TypeDuBlock);
+        return (svc.GetBuilder(input, blockInfo, state.IsExplain), svc);
     }
 
     #endregion
@@ -462,17 +461,17 @@ public abstract class PipeRunnerBase<TErreurManager, TEtatManager, TEtat, TDecla
 
     protected override void OnInstancierBlock(BlockInfo blockInfo, IPipeProcessBlock block)
     {
-        block.ProgressChanged += ProgressionManager.OnProgressionBlock;
-        EtatManager.InitialiserMachineAEtat(block.Identifiant.ToString());
-        EtatManager.DeclancherBlockDemarred(block.Identifiant.ToString());
         base.OnInstancierBlock(blockInfo, block);
+        block.ProgressChanged += ProgressionManager.OnProgressionBlock;
+        EtatManager.InitialiserBlockMachineAEtat(block.Identifiant.ToString());
+        EtatManager.DeclancherBlockDemarred(block.Identifiant.ToString());
     }
 
     protected override void OnTerminerBlock(BlockInfo blockInfo, IPipeProcessBlock block)
     {
+        base.OnTerminerBlock(blockInfo, block);
         EtatManager.DeclancherBlockTermined(block.Identifiant.ToString());
         ProgressionManager.NotifierBlockTraited(blockInfo);
-        base.OnTerminerBlock(blockInfo, block);
         block.ProgressChanged -= ProgressionManager.OnProgressionBlock;
     }
 }

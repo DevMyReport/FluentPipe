@@ -9,14 +9,26 @@
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>A description of your library.</description>
         <copyright>Copyright 2024 MyReport</copyright>
-        <dependencies>
-            <group targetFramework="net8.0">
-                <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="8.0.0" />
-            </group>
-        </dependencies>
+		<dependencies>
+		  <!-- Pour les apps .NET 8 -->
+		  <group targetFramework="net8.0">
+			<!-- on prend les 8.x de l’ABstractions -->
+			<dependency id="Microsoft.Extensions.DependencyInjection.Abstractions"
+						version="[8.0.0,9.0.0)" />
+		  </group>
+
+		  <!-- Pour les apps .NET 9 -->
+		  <group targetFramework="net9.0">
+			<!-- on prend les 9.x de l’ABstractions -->
+			<dependency id="Microsoft.Extensions.DependencyInjection.Abstractions"
+						version="[9.0.0,10.0.0)" />
+		  </group>
+		</dependencies>
     </metadata>
     <files>
-        <file src="bin\Release\net8.0\FluentPipe.dll" target="lib\net8.0\FluentPipe.dll" />
-        <file src="bin\Release\net8.0\FluentPipe.pdb" target="lib\net8.0\FluentPipe.pdb" />
+   <file src="bin\Release\net8.0\*.dll" target="lib\net8.0\" />
+  <file src="bin\Release\net8.0\*.pdb" target="lib\net8.0\" />
+  <file src="bin\Release\net9.0\*.dll" target="lib\net9.0\" />
+  <file src="bin\Release\net9.0\*.pdb" target="lib\net9.0\" />
     </files>
 </package>

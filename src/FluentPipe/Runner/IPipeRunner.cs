@@ -9,8 +9,8 @@ namespace FluentPipe.Runner;
 //default runner
 public interface IPipeRunner : IPipeRunner<PipeErreurManager>;
 
-public interface IPipeRunnerAvecEtatEtProgression : IPipeRunner<PipeErreurManager, PipeEtatManager, EnumEtapeEtat,
-    EnumEtapeDeclancheur, PipeProgressionManager>;
+public interface IPipeRunnerAvecEtatEtProgression : IPipeRunner<PipeErreurManager, PipeEtatManager, EnumMachineEtat,
+    EnumMachineDeclancheur, PipeProgressionManager>;
 
 public sealed record SortieRunner<TOut, TError>(
     TOut? Sortie,

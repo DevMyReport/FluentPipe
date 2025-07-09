@@ -38,7 +38,7 @@ public class PipeProgressionManagerTests
         PipeProgressionEvent? pipeProgressionEventReceived = null;
         _manager.PipeProgressionChanged += (_, e) => pipeProgressionEventReceived = e;
 
-        var blockEvent = new ProgressionEvent("step", "Step", 1, 10);
+        var blockEvent = new ProgressionEvent("block", "Block", 1, 10);
 
         _manager.OnProgressionBlock(this, blockEvent);
 

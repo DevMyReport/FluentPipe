@@ -29,11 +29,11 @@ public class PipeEtatManagerTests
     {
         const string etape = "etape";
         _manager.AjouterMachineAEtat(etape);
-        _manager.Declancher(etape, EnumEtapeDeclancheur.Demarrage);
-        _manager.Declancher(etape, EnumEtapeDeclancheur.Succes);
+        _manager.DeclancherBlock(etape, EnumMachineDeclancheur.Demarrage);
+        _manager.DeclancherBlock(etape, EnumMachineDeclancheur.Succes);
 
         var etat = _manager.GetBlockEtat(etape);
-        Assert.AreEqual(EnumEtapeEtat.Succes, etat);
+        Assert.AreEqual(EnumMachineEtat.Succes, etat);
     }
     
     [TestMethod]
@@ -41,7 +41,7 @@ public class PipeEtatManagerTests
     {
         const string etape = "etape";
         _manager.AjouterMachineAEtat(etape);
-        var isDeclenched =_manager.Declancher(etape, EnumEtapeDeclancheur.Succes);
+        var isDeclenched =_manager.DeclancherBlock(etape, EnumMachineDeclancheur.Succes);
         Assert.IsFalse(isDeclenched);
     }
     
@@ -50,7 +50,7 @@ public class PipeEtatManagerTests
     public void Declancher_Demarrage_SansMachineAEtat()
     {
         const string etape = "etape";
-        _manager.Declancher(etape, EnumEtapeDeclancheur.Demarrage);
+        _manager.DeclancherBlock(etape, EnumMachineDeclancheur.Demarrage);
     }
 
     [TestMethod]
@@ -59,13 +59,13 @@ public class PipeEtatManagerTests
         const string etape = "etape";
         _manager.AjouterMachineAEtat(etape);
         
-        _manager.Declancher(etape, EnumEtapeDeclancheur.Demarrage);
+        _manager.DeclancherBlock(etape, EnumMachineDeclancheur.Demarrage);
         var etat = _manager.GetBlockEtat(etape);
-        Assert.AreEqual(EnumEtapeEtat.EnCours, etat);
+        Assert.AreEqual(EnumMachineEtat.EnCours, etat);
         
-        _manager.Declancher(etape, EnumEtapeDeclancheur.Erreur);
+        _manager.DeclancherBlock(etape, EnumMachineDeclancheur.Erreur);
         etat = _manager.GetBlockEtat(etape);
-        Assert.AreEqual(EnumEtapeEtat.Echec, etat);
+        Assert.AreEqual(EnumMachineEtat.Echec, etat);
     }
 
     [TestMethod]
@@ -73,11 +73,11 @@ public class PipeEtatManagerTests
     {
         const string etape = "etape";
         _manager.AjouterMachineAEtat(etape);
-        _manager.Declancher(etape, EnumEtapeDeclancheur.Demarrage);
-        _manager.Declancher(etape, EnumEtapeDeclancheur.Annulation);
+        _manager.DeclancherBlock(etape, EnumMachineDeclancheur.Demarrage);
+        _manager.DeclancherBlock(etape, EnumMachineDeclancheur.Annulation);
 
         var etat = _manager.GetBlockEtat(etape);
-        Assert.AreEqual(EnumEtapeEtat.Annuled, etat);
+        Assert.AreEqual(EnumMachineEtat.Annuled, etat);
     }
 
     [TestMethod]
@@ -90,17 +90,17 @@ public class PipeEtatManagerTests
         const string parent = "parent";
         _manager.AjouterMachineAEtat(parent);
         
-        _manager.Declancher(enfant1, EnumEtapeDeclancheur.Demarrage);
-        _manager.Declancher(enfant1, EnumEtapeDeclancheur.Erreur);
+        _manager.DeclancherBlock(enfant1, EnumMachineDeclancheur.Demarrage);
+        _manager.DeclancherBlock(enfant1, EnumMachineDeclancheur.Erreur);
         var etat = _manager.GetBlockEtat(enfant1);
-        Assert.AreEqual(EnumEtapeEtat.Echec, etat);
-        _manager.Declancher(enfant2, EnumEtapeDeclancheur.Demarrage);
-        _manager.Declancher(enfant2, EnumEtapeDeclancheur.Succes);
+        Assert.AreEqual(EnumMachineEtat.Echec, etat);
+        _manager.DeclancherBlock(enfant2, EnumMachineDeclancheur.Demarrage);
+        _manager.DeclancherBlock(enfant2, EnumMachineDeclancheur.Succes);
         etat = _manager.GetBlockEtat(enfant2);
-        Assert.AreEqual(EnumEtapeEtat.Succes, etat);
+        Assert.AreEqual(EnumMachineEtat.Succes, etat);
 
         var etatAgreged = _manager.AgregerEtapesEtats(new[] { enfant1, enfant2 });
-        Assert.AreEqual(EnumEtapeEtat.Echec, etatAgreged);
+        Assert.AreEqual(EnumMachineEtat.Echec, etatAgreged);
     }
     
     [TestMethod]
@@ -115,15 +115,15 @@ public class PipeEtatManagerTests
         const string parent = "parent";
         _manager.AjouterMachineAEtat(parent);
         
-        _manager.Declancher(enfant1, EnumEtapeDeclancheur.Demarrage);
-        _manager.Declancher(enfant1, EnumEtapeDeclancheur.Erreur);
-        _manager.Declancher(enfant2, EnumEtapeDeclancheur.Demarrage);
-        _manager.Declancher(enfant2, EnumEtapeDeclancheur.Erreur);
-        _manager.Declancher(enfant3, EnumEtapeDeclancheur.Demarrage);
-        _manager.Declancher(enfant3, EnumEtapeDeclancheur.Erreur);
+        _manager.DeclancherBlock(enfant1, EnumMachineDeclancheur.Demarrage);
+        _manager.DeclancherBlock(enfant1, EnumMachineDeclancheur.Erreur);
+        _manager.DeclancherBlock(enfant2, EnumMachineDeclancheur.Demarrage);
+        _manager.DeclancherBlock(enfant2, EnumMachineDeclancheur.Erreur);
+        _manager.DeclancherBlock(enfant3, EnumMachineDeclancheur.Demarrage);
+        _manager.DeclancherBlock(enfant3, EnumMachineDeclancheur.Erreur);
 
         var etatAgreged = _manager.AgregerEtapesEtats(new[] { enfant1, enfant2, enfant3 });
-        Assert.AreEqual(EnumEtapeEtat.Echec, etatAgreged);
+        Assert.AreEqual(EnumMachineEtat.Echec, etatAgreged);
     }
     
     [TestMethod]
@@ -138,12 +138,12 @@ public class PipeEtatManagerTests
         const string parent = "parent";
         _manager.AjouterMachineAEtat(parent);
         
-        _manager.Declancher(enfant1, EnumEtapeDeclancheur.Demarrage);
-        _manager.Declancher(enfant1, EnumEtapeDeclancheur.Succes);
-        _manager.Declancher(enfant2, EnumEtapeDeclancheur.Demarrage);
+        _manager.DeclancherBlock(enfant1, EnumMachineDeclancheur.Demarrage);
+        _manager.DeclancherBlock(enfant1, EnumMachineDeclancheur.Succes);
+        _manager.DeclancherBlock(enfant2, EnumMachineDeclancheur.Demarrage);
 
         var etatAgreged = _manager.AgregerEtapesEtats(new[] { enfant1, enfant2, enfant3 });
-        Assert.AreEqual(EnumEtapeEtat.EnCours, etatAgreged);
+        Assert.AreEqual(EnumMachineEtat.EnCours, etatAgreged);
     }
     
     [TestMethod]
@@ -158,15 +158,15 @@ public class PipeEtatManagerTests
         const string parent = "parent";
         _manager.AjouterMachineAEtat(parent);
         
-        _manager.Declancher(enfant1, EnumEtapeDeclancheur.Demarrage);
-        _manager.Declancher(enfant1, EnumEtapeDeclancheur.Succes);
-        _manager.Declancher(enfant2, EnumEtapeDeclancheur.Demarrage);
-        _manager.Declancher(enfant2, EnumEtapeDeclancheur.Succes);
-        _manager.Declancher(enfant3, EnumEtapeDeclancheur.Demarrage);
-        _manager.Declancher(enfant3, EnumEtapeDeclancheur.Succes);
+        _manager.DeclancherBlock(enfant1, EnumMachineDeclancheur.Demarrage);
+        _manager.DeclancherBlock(enfant1, EnumMachineDeclancheur.Succes);
+        _manager.DeclancherBlock(enfant2, EnumMachineDeclancheur.Demarrage);
+        _manager.DeclancherBlock(enfant2, EnumMachineDeclancheur.Succes);
+        _manager.DeclancherBlock(enfant3, EnumMachineDeclancheur.Demarrage);
+        _manager.DeclancherBlock(enfant3, EnumMachineDeclancheur.Succes);
 
         var etatAgreged = _manager.AgregerEtapesEtats(new[] { enfant1, enfant2, enfant3 });
-        Assert.AreEqual(EnumEtapeEtat.Succes, etatAgreged);
+        Assert.AreEqual(EnumMachineEtat.Succes, etatAgreged);
     }
     
     [TestMethod]
@@ -181,14 +181,14 @@ public class PipeEtatManagerTests
         const string parent = "parent";
         _manager.AjouterMachineAEtat(parent);
         
-        _manager.Declancher(enfant1, EnumEtapeDeclancheur.Demarrage);
-        _manager.Declancher(enfant1, EnumEtapeDeclancheur.Annulation);
-        _manager.Declancher(enfant2, EnumEtapeDeclancheur.Demarrage);
-        _manager.Declancher(enfant2, EnumEtapeDeclancheur.Erreur);
-        _manager.Declancher(enfant3, EnumEtapeDeclancheur.Demarrage);
+        _manager.DeclancherBlock(enfant1, EnumMachineDeclancheur.Demarrage);
+        _manager.DeclancherBlock(enfant1, EnumMachineDeclancheur.Annulation);
+        _manager.DeclancherBlock(enfant2, EnumMachineDeclancheur.Demarrage);
+        _manager.DeclancherBlock(enfant2, EnumMachineDeclancheur.Erreur);
+        _manager.DeclancherBlock(enfant3, EnumMachineDeclancheur.Demarrage);
 
         var etatAgreged = _manager.AgregerEtapesEtats(new[] { enfant1, enfant2, enfant3 });
-        Assert.AreEqual(EnumEtapeEtat.Echec, etatAgreged);
+        Assert.AreEqual(EnumMachineEtat.Echec, etatAgreged);
     }
     
     [TestMethod]
@@ -203,14 +203,14 @@ public class PipeEtatManagerTests
         const string parent = "parent";
         _manager.AjouterMachineAEtat(parent);
         
-        _manager.Declancher(enfant1, EnumEtapeDeclancheur.Demarrage);
-        _manager.Declancher(enfant1, EnumEtapeDeclancheur.Annulation);
-        _manager.Declancher(enfant2, EnumEtapeDeclancheur.Demarrage);
-        _manager.Declancher(enfant2, EnumEtapeDeclancheur.Succes);
-        _manager.Declancher(enfant3, EnumEtapeDeclancheur.Demarrage);
-        _manager.Declancher(enfant3, EnumEtapeDeclancheur.Succes);
+        _manager.DeclancherBlock(enfant1, EnumMachineDeclancheur.Demarrage);
+        _manager.DeclancherBlock(enfant1, EnumMachineDeclancheur.Annulation);
+        _manager.DeclancherBlock(enfant2, EnumMachineDeclancheur.Demarrage);
+        _manager.DeclancherBlock(enfant2, EnumMachineDeclancheur.Succes);
+        _manager.DeclancherBlock(enfant3, EnumMachineDeclancheur.Demarrage);
+        _manager.DeclancherBlock(enfant3, EnumMachineDeclancheur.Succes);
 
         var etatAgreged = _manager.AgregerEtapesEtats(new[] { enfant1, enfant2, enfant3 });
-        Assert.AreEqual(EnumEtapeEtat.Annuled, etatAgreged);
+        Assert.AreEqual(EnumMachineEtat.Annuled, etatAgreged);
     }
 }

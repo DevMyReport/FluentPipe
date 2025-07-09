@@ -22,7 +22,7 @@ public abstract class PipeBlockHelper<TIn, TOut>
     /// <exception cref="InvalidCastException"></exception>
     public virtual TIn Converter(object input)
     {
-        if (input is TIn val)
+        if (input is TIn val)   
             return val;
 
         throw new InvalidCastException($"{GetType().FullName} : can't convert {input.GetType()} to {typeof(TIn)}");
